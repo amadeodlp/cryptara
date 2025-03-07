@@ -1,0 +1,32 @@
+/**
+ * Input component CSS
+ * Following BEM methodology
+ */
+
+.input {
+  @apply flex flex-col mb-4;
+}
+
+.input--full-width {
+  @apply w-full;
+}
+
+.input__label {
+  @apply block text-sm font-medium text-slate-700 mb-1;
+}
+
+.input__field {
+  @apply block w-full rounded-md border-slate-300 shadow-sm focus:border-primary-500 focus:ring-primary-500 sm:text-sm px-3 py-2 border;
+}
+
+.input__field--error {
+  @apply border-red-500 focus:border-red-500 focus:ring-red-500;
+}
+
+.input__helper-text {
+  @apply mt-1 text-sm text-slate-500;
+}
+
+.input__helper-text--error {
+  @apply text-red-500;
+}

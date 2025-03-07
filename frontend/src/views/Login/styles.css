@@ -1,0 +1,36 @@
+/**
+ * Login page CSS
+ * Following BEM methodology
+ */
+
+.login {
+  @apply flex min-h-screen items-center justify-center bg-gradient-to-br from-primary-500 to-secondary-500 py-12 px-4 sm:px-6 lg:px-8;
+}
+
+.login__container {
+  @apply w-full max-w-md space-y-8;
+}
+
+.login__card {
+  @apply rounded-xl bg-white p-8 shadow-xl;
+}
+
+.login__header {
+  @apply mb-8 text-center;
+}
+
+.login__title {
+  @apply text-3xl font-bold tracking-tight text-primary-600;
+}
+
+.login__subtitle {
+  @apply mt-2 text-sm text-slate-600;
+}
+
+.login__form {
+  @apply space-y-6;
+}
+
+.login__submit-btn {
+  @apply mt-6;
+}

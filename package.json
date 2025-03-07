@@ -1,0 +1,16 @@
+{
+  "name": "finance-simplified",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "smart-contracts"
+  ],
+  "scripts": {
+    "frontend": "cd frontend && npm start",
+    "backend": "cd backend && dotnet run",
+    "contracts": "cd smart-contracts && npx hardhat compile",
+    "test:contracts": "cd smart-contracts && npx hardhat test",
+    "deploy:contracts": "cd smart-contracts && npx hardhat run scripts/deploy.js --network localhost"
+  }
+}
