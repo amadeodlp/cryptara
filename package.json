@@ -7,10 +7,14 @@
     "smart-contracts"
   ],
   "scripts": {
-    "frontend": "cd frontend && npm start",
+    "frontend": "cd frontend && npm run dev",
     "backend": "cd backend && dotnet run",
     "contracts": "cd smart-contracts && npx hardhat compile",
+    "start": "concurrently \"npm run backend\" \"npm run frontend\" \"npm run contracts\"",
     "test:contracts": "cd smart-contracts && npx hardhat test",
     "deploy:contracts": "cd smart-contracts && npx hardhat run scripts/deploy.js --network localhost"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

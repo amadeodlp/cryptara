@@ -48,6 +48,7 @@ smart-contracts/typechain-types/
 .env.development.local
 .env.test.local
 .env.production.local
+.vs/
 
 # C# specific
 *.suo
