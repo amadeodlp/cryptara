@@ -26,10 +26,13 @@ interface LoginResponse {
   token: string;
 }
 
+// Get the API URL from environment variables
+const apiUrl = import.meta.env.VITE_API_URL || '';
+
 export const authApi = createApi({
   reducerPath: 'authApi',
   baseQuery: fetchBaseQuery({ 
-    baseUrl: '/api', // This will be proxied by Vite's dev server
+    baseUrl: apiUrl, // Use the environment variable instead of relative path
     prepareHeaders: (headers, { getState }) => {
       // Add token to headers if available
       const token = (getState() as any).auth.token;
@@ -42,21 +45,21 @@ export const authApi = createApi({
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
-        url: '/auth/login',
+        url: '/api/auth/login',
         method: 'POST',
         body: credentials,
       }),
     }),
     register: builder.mutation<RegisterResponse, RegisterRequest>({
       query: (userData) => ({
-        url: '/auth/register',
+        url: '/api/auth/register',
         method: 'POST',
         body: userData,
       }),
     }),
     logout: builder.mutation<void, void>({
       query: () => ({
-        url: '/auth/logout',
+        url: '/api/auth/logout',
         method: 'POST',
       }),
     }),
