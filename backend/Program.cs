@@ -114,8 +114,6 @@ builder.Configuration.AddEnvironmentVariables();
 // Print environment variables
 Console.WriteLine($"Infura URL: {builder.Configuration["Blockchain:InfuraUrl"]}");
 Console.WriteLine($"TokenContractAddress: {builder.Configuration["Blockchain:TokenContractAddress"]}");
-
-var app = builder.Build();
 app.MapGet("/", () => "Hello, Railway!");
 
 app.UseHttpsRedirection();
