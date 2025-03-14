@@ -7,7 +7,7 @@ async function main() {
   // Get the deployer account
   const [deployer] = await hre.ethers.getSigners();
   console.log("Deploying TokenSale contract with account:", deployer.address);
-  console.log("Account balance:", (await deployer.getBalance()).toString());
+  console.log("Account balance:", (await hre.ethers.provider.getBalance(deployer.address)).toString());
 
   // Read the deployment data to get the Finance Token address
   let deploymentData = {};

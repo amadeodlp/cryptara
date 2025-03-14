@@ -1,0 +1,30 @@
+name: Deploy Production
+
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  deploy-backend:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+    
+    - name: Restore dependencies
+      run: dotnet restore backend/COSMOS.csproj
+    
+    - name: Build
+      run: dotnet build backend/COSMOS.csproj --configuration Release --no-restore
+    
+    - name: Publish
+      run: dotnet publish backend/COSMOS.csproj -c Release -o ./publish
+    
+    # Add steps to deploy to your production server
+    # Examples include Azure App Service, AWS Elastic Beanstalk, or your own server
+    # You'll need to set up GitHub Secrets for credentials
