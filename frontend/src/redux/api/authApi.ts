@@ -29,7 +29,7 @@ interface LoginResponse {
 export const authApi = createApi({
   reducerPath: 'authApi',
   baseQuery: fetchBaseQuery({ 
-    baseUrl: '/api',
+    baseUrl: '/api', // This will be proxied by Vite's dev server
     prepareHeaders: (headers, { getState }) => {
       // Add token to headers if available
       const token = (getState() as any).auth.token;
