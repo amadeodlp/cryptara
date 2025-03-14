@@ -5,6 +5,16 @@ interface LoginRequest {
   password: string;
 }
 
+interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+}
+
+interface RegisterResponse {
+  message: string;
+}
+
 interface User {
   id: string;
   name: string;
@@ -37,6 +47,13 @@ export const authApi = createApi({
         body: credentials,
       }),
     }),
+    register: builder.mutation<RegisterResponse, RegisterRequest>({
+      query: (userData) => ({
+        url: '/auth/register',
+        method: 'POST',
+        body: userData,
+      }),
+    }),
     logout: builder.mutation<void, void>({
       query: () => ({
         url: '/auth/logout',
@@ -46,4 +63,4 @@ export const authApi = createApi({
   }),
 });
 
-export const { useLoginMutation, useLogoutMutation } = authApi;
+export const { useLoginMutation, useRegisterMutation, useLogoutMutation } = authApi;

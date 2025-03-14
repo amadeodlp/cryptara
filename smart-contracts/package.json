@@ -8,10 +8,11 @@
     "test": "hardhat test",
     "deploy:local": "hardhat run scripts/deploy.js --network localhost",
     "deploy:sepolia": "hardhat run scripts/deploy.js --network sepolia",
+    "deploy:staking:sepolia": "hardhat run scripts/partial/deploy-staking.js --network sepolia",
     "node": "hardhat node"
   },
   "dependencies": {
-    "@openzeppelin/contracts": "^5.0.0"
+    "@openzeppelin/contracts": "^4.9.3"
   },
   "devDependencies": {
     "@nomicfoundation/hardhat-chai-matchers": "^2.0.2",

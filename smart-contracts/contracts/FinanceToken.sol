@@ -16,8 +16,9 @@ contract FinanceToken is ERC20, Ownable {
     /**
      * @dev Constructor that gives the msg.sender an initial supply of tokens
      */
-    constructor(uint256 initialSupply) ERC20("Finance Token", "FIN") Ownable(msg.sender) {
+    constructor(uint256 initialSupply) ERC20("Finance Token", "FIN") {
         _mint(msg.sender, initialSupply);
+        _transferOwnership(msg.sender);
     }
 
     /**

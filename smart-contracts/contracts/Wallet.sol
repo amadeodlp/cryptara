@@ -23,7 +23,9 @@ contract Wallet is Ownable {
     /**
      * @dev Constructor
      */
-    constructor() Ownable(msg.sender) {}
+    constructor() {
+        _transferOwnership(msg.sender);
+    }
 
     /**
      * @dev Deposit tokens into the wallet

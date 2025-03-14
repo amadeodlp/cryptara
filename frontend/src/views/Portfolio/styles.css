@@ -1,0 +1,359 @@
+@import '../../styles/theme.css';
+
+.portfolio-view {
+  padding: 1.5rem 0;
+}
+
+.portfolio-view__header {
+  margin-bottom: 2rem;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(to right, #ffffff, #cccccc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.page-subtitle {
+  color: var(--text-secondary);
+  font-size: 1.1rem;
+}
+
+/* Loading */
+.loading-container {
+  min-height: 50vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  color: var(--text-secondary);
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  border-top: 3px solid var(--primary-color);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Portfolio Summary */
+.portfolio-summary {
+  padding: 1.5rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.summary-item {
+  flex: 1;
+  min-width: 250px;
+}
+
+.summary-item h3 {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin: 0 0 0.5rem 0;
+}
+
+.summary-item .value {
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.value.positive {
+  color: #4caf50;
+}
+
+.value.negative {
+  color: #ff5252;
+}
+
+/* Timeframe Selector */
+.timeframe-selector {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  justify-content: flex-end;
+  flex-grow: 1;
+}
+
+.timeframe-button {
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: var(--border-radius-sm);
+  color: var(--text-secondary);
+  padding: 0.5rem 0.75rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.timeframe-button:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+
+.timeframe-button.active {
+  background: var(--primary-color);
+  color: white;
+}
+
+/* Portfolio Grid */
+.portfolio-grid {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 1.5rem;
+}
+
+.portfolio-analytics-section {
+  grid-column: span 8;
+  padding: 1.5rem;
+}
+
+.portfolio-distribution {
+  grid-column: span 4;
+  padding: 1.5rem;
+}
+
+.assets-table-section {
+  grid-column: span 12;
+  padding: 1.5rem;
+}
+
+.portfolio-actions-section {
+  grid-column: span 12;
+  padding: 1.5rem;
+}
+
+/* Portfolio Distribution */
+.allocation-chart {
+  margin: 1.5rem 0;
+}
+
+.placeholder-chart {
+  display: flex;
+  height: 30px;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.chart-segment {
+  height: 100%;
+}
+
+.chart-segment.eth {
+  background: #627eea;
+}
+
+.chart-segment.btc {
+  background: #f7931a;
+}
+
+.chart-segment.sol {
+  background: #00ffbd;
+}
+
+.chart-segment.fin {
+  background: #9945ff;
+}
+
+.allocation-legend {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 1rem;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+}
+
+.legend-color.eth {
+  background: #627eea;
+}
+
+.legend-color.btc {
+  background: #f7931a;
+}
+
+.legend-color.sol {
+  background: #00ffbd;
+}
+
+.legend-color.fin {
+  background: #9945ff;
+}
+
+.legend-label {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.legend-value {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-left: auto;
+}
+
+/* Assets Table */
+.assets-table-wrapper {
+  overflow-x: auto;
+}
+
+.assets-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.assets-table th,
+.assets-table td {
+  padding: 1rem;
+  text-align: left;
+}
+
+.assets-table th {
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.9rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.assets-table td {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.assets-table tr:last-child td {
+  border-bottom: none;
+}
+
+.asset-cell {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.asset-logo {
+  width: 35px;
+  height: 35px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.asset-name {
+  display: flex;
+  flex-direction: column;
+}
+
+.asset-symbol {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+td.positive {
+  color: #4caf50;
+}
+
+td.negative {
+  color: #ff5252;
+}
+
+/* Portfolio Actions */
+.portfolio-action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.action-button {
+  flex: 1;
+  min-width: 200px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  border-radius: var(--border-radius-md);
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.action-button:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: translateY(-3px);
+}
+
+.action-icon {
+  font-size: 1.5rem;
+}
+
+/* Media Queries */
+@media (max-width: 1200px) {
+  .portfolio-grid {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  
+  .portfolio-analytics-section {
+    grid-column: span 6;
+  }
+  
+  .portfolio-distribution {
+    grid-column: span 6;
+  }
+}
+
+@media (max-width: 768px) {
+  .portfolio-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .portfolio-analytics-section,
+  .portfolio-distribution,
+  .assets-table-section,
+  .portfolio-actions-section {
+    grid-column: span 1;
+  }
+  
+  .summary-item {
+    min-width: 100%;
+  }
+  
+  .timeframe-selector {
+    width: 100%;
+    justify-content: center;
+    margin-top: 1.5rem;
+  }
+  
+  .asset-cell {
+    min-width: 180px;
+  }
+}

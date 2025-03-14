@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
+import { Link } from 'react-router-dom';
 import { useLoginMutation } from '@/redux/api/authApi';
 import { login } from '@/redux/slices/authSlice';
 import Button from '@/components/atoms/Button';
@@ -19,6 +20,22 @@ const Login: React.FC = () => {
     email: '',
     password: '',
   });
+  
+  const [backgroundImage, setBackgroundImage] = useState(0);
+  const backgrounds = [
+    'url("/src/assets/images/bg-finance-1.jpg")',
+    'url("/src/assets/images/bg-finance-2.jpg")',
+    'url("/src/assets/images/bg-finance-3.jpg")',
+  ];
+
+  // Cycle through background images
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setBackgroundImage((prev) => (prev + 1) % backgrounds.length);
+    }, 8000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -70,48 +87,105 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="login">
-      <div className="login__container">
-        <div className="login__card">
-          <div className="login__header">
-            <h1 className="login__title">Finance Simplified</h1>
-            <p className="login__subtitle">Sign in to your account</p>
+    <div className="login-page">
+      <div 
+        className="login-background" 
+        style={{ 
+          backgroundImage: backgrounds[backgroundImage],
+          opacity: 1,
+        }}
+      ></div>
+      <div className="login-overlay"></div>
+      
+      <div className="login">
+        <div className="login__container">
+          <div className="login__logo-container">
+            <h1 className="login__logo">Finance<span className="text-gradient">Simplified</span></h1>
+            <p className="login__tagline">Secure. Efficient. Decentralized.</p>
           </div>
           
-          <form className="login__form" onSubmit={handleSubmit}>
-            <Input
-              label="Email"
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              error={errors.email}
-              fullWidth
-              placeholder="your@email.com"
-              autoComplete="email"
-            />
+          <div className="login__card glass-card">
+            <div className="login__header">
+              <h2 className="login__title">Welcome Back</h2>
+              <p className="login__subtitle">Sign in to your account</p>
+            </div>
             
-            <Input
-              label="Password"
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              error={errors.password}
-              fullWidth
-              placeholder="••••••"
-              autoComplete="current-password"
-            />
+            <form className="login__form" onSubmit={handleSubmit}>
+              <div className="form-group">
+                <label htmlFor="email" className="input-label">Email</label>
+                <input
+                  id="email"
+                  type="email"
+                  name="email"
+                  className="input-modern"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="your@email.com"
+                  autoComplete="email"
+                />
+                {errors.email && <div className="input-error">{errors.email}</div>}
+              </div>
+              
+              <div className="form-group">
+                <div className="label-row">
+                  <label htmlFor="password" className="input-label">Password</label>
+                  <a href="#" className="forgot-password">Forgot password?</a>
+                </div>
+                <input
+                  id="password"
+                  type="password"
+                  name="password"
+                  className="input-modern"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="••••••"
+                  autoComplete="current-password"
+                />
+                {errors.password && <div className="input-error">{errors.password}</div>}
+              </div>
+              
+              <div className="remember-me">
+                <label className="checkbox-container">
+                  <input type="checkbox" />
+                  <span className="checkmark"></span>
+                  <span className="checkbox-label">Remember me</span>
+                </label>
+              </div>
+              
+              <button
+                type="submit"
+                className="btn-gradient login-btn"
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <span className="loading-spinner"></span>
+                ) : (
+                  'Sign In'
+                )}
+              </button>
+            </form>
             
-            <Button
-              type="submit"
-              fullWidth
-              loading={isLoading}
-              className="login__submit-btn"
-            >
-              Sign In
-            </Button>
-          </form>
+            <div className="login__footer">
+              <p className="signup-prompt">
+                Don't have an account? <Link to="/signup" className="signup-link">Sign up</Link>
+              </p>
+            </div>
+          </div>
+          
+          <div className="login__features">
+            <div className="feature-item">
+              <div className="feature-icon">🔒</div>
+              <div className="feature-text">End-to-end encryption</div>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon">⚡</div>
+              <div className="feature-text">Lightning fast transactions</div>
+            </div>
+            <div className="feature-item">
+              <div className="feature-icon">💼</div>
+              <div className="feature-text">Smart portfolio management</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

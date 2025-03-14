@@ -71,7 +71,7 @@ const Home: React.FC = () => {
           ) : (
             <div className="home__wallet-connect">
               <p className="home__wallet-text">Connect your wallet to interact with smart contracts</p>
-              <Button onClick={connectWallet} variant="primary">
+              <Button onClick={connectWallet} variant="primary" className="btn-gradient">
                 Connect Wallet
               </Button>
             </div>

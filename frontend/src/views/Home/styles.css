@@ -1,69 +1,141 @@
-/**
- * Home page CSS
- * Following BEM methodology
- */
+@import '../../styles/theme.css';
 
 .home {
-  @apply px-4 py-6 sm:px-6 lg:px-8;
+  padding: 1.5rem 0;
 }
 
 .home__header {
-  @apply mb-6;
+  margin-bottom: 2rem;
 }
 
 .home__title {
-  @apply text-2xl font-bold text-slate-900;
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(to right, #ffffff, #cccccc);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .home__subtitle {
-  @apply mt-1 text-sm text-slate-500;
+  color: var(--text-secondary);
+  font-size: 1.1rem;
 }
 
 .home__card {
-  @apply mb-6 overflow-hidden rounded-lg bg-white shadow;
+  margin-bottom: 2rem;
+  background: rgba(30, 30, 40, 0.6);
+  backdrop-filter: blur(10px);
+  border-radius: var(--border-radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+  padding: 1.5rem;
+}
+
+.home__card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+  border-color: rgba(var(--primary-color-rgb), 0.3);
 }
 
 .home__card-header {
-  @apply border-b border-slate-200 bg-slate-50 px-4 py-5 sm:px-6;
+  margin-bottom: 1.5rem;
 }
 
 .home__card-title {
-  @apply text-lg font-medium leading-6 text-slate-900;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text-primary);
 }
 
 .home__card-content {
-  @apply px-4 py-5 sm:p-6;
+  width: 100%;
 }
 
 .home__balance-box {
-  @apply flex flex-col items-center justify-center py-4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 0;
 }
 
 .home__balance-label {
-  @apply text-sm font-medium text-slate-500;
+  font-size: 1rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
 }
 
 .home__balance-amount {
-  @apply mt-2 text-4xl font-bold text-primary-600;
+  font-size: 3rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #ffffff, #64b5f6);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .home__wallet-info,
 .home__wallet-connect {
-  @apply flex flex-col items-center justify-center py-4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem 0;
 }
 
 .home__wallet-status {
-  @apply mb-2 text-sm font-medium;
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  font-weight: 500;
+}
+
+.home__wallet-status::before {
+  content: '';
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 0.5rem;
 }
 
 .home__wallet-status--connected {
-  @apply text-green-600;
+  color: #4caf50;
+}
+
+.home__wallet-status--connected::before {
+  background-color: #4caf50;
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+  animation: pulse-green 2s infinite;
+}
+
+@keyframes pulse-green {
+  0% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(76, 175, 80, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(76, 175, 80, 0);
+  }
 }
 
 .home__wallet-address {
-  @apply text-sm text-slate-600;
+  font-family: monospace;
+  font-size: 0.9rem;
+  background: rgba(255, 255, 255, 0.05);
+  padding: 0.35rem 0.75rem;
+  border-radius: var(--border-radius-sm);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .home__wallet-text {
-  @apply mb-4 text-center text-slate-600;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  color: var(--text-secondary);
 }

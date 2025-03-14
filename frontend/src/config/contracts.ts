@@ -1,13 +1,21 @@
-// Smart contract addresses
-// Update these after deployment
+import { setContractAddresses } from '../services/web3Service';
 
-export const CONTRACT_ADDRESSES = {
-  // Default values (will be replaced after deployment)
-  TOKEN_ADDRESS: '0x0000000000000000000000000000000000000000',
-  WALLET_ADDRESS: '0x0000000000000000000000000000000000000000',
-};
-
-// API configuration
-export const API_CONFIG = {
-  BASE_URL: 'http://localhost:5000/api',
+// Initialize contract addresses from environment variables if available
+export const initializeContracts = () => {
+  const tokenContractAddress = import.meta.env.VITE_TOKEN_CONTRACT_ADDRESS;
+  const walletContractAddress = import.meta.env.VITE_WALLET_CONTRACT_ADDRESS;
+  const stakingContractAddress = import.meta.env.VITE_STAKING_CONTRACT_ADDRESS;
+  
+  if (tokenContractAddress && walletContractAddress) {
+    console.log('Using contract addresses from environment variables');
+    setContractAddresses(tokenContractAddress, walletContractAddress, stakingContractAddress);
+    
+    // Log network info
+    console.log('Connected to Sepolia network with contracts:');
+    console.log('- Token:', tokenContractAddress);
+    console.log('- Wallet:', walletContractAddress);
+    console.log('- Staking:', stakingContractAddress);
+  } else {
+    console.log('No contract addresses found in environment variables, using localStorage if available');
+  }
 };

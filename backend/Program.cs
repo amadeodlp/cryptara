@@ -1,10 +1,27 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 using FinanceSimplified.Services;
+using FinanceSimplified.Data;
 using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Add database context
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        // Use SQLite for development
+        options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=finance.db");
+    }
+    else
+    {
+        // Use SQL Server for production
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+    }
+});
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -37,8 +54,13 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Register services
-builder.Services.AddSingleton<ITokenService, TokenService>();
-builder.Services.AddSingleton<IUserService, UserService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IWalletService, WalletService>();
+builder.Services.AddScoped<ITransactionService, TransactionService>();
+builder.Services.AddScoped<IStakingService, StakingService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddHttpClient<IPriceFeedService, PriceFeedService>();
 
 // Configure JWT authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -74,6 +96,16 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    
+    // Initialize the database with seed data in development
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        dbContext.Database.EnsureCreated(); // Creates the database if it doesn't exist
+        
+        // If you want to apply migrations instead, uncomment the line below:
+        // dbContext.Database.Migrate();
+    }
 }
 
 app.UseHttpsRedirection();

@@ -1,0 +1,594 @@
+.staking-page {
+  padding: 2rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.staking-header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.staking-title {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.staking-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.8;
+}
+
+.staking-loading {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+.loading-spinner-large {
+  width: 48px;
+  height: 48px;
+  border: 4px solid rgba(0, 198, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #00c6ff;
+  animation: spin 1s ease-in-out infinite;
+  margin-bottom: 1rem;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  overflow: hidden;
+}
+
+.staking-pools {
+  margin-bottom: 2rem;
+}
+
+.pools-header {
+  display: grid;
+  grid-template-columns: 3fr 1fr 1.5fr 2fr 1.5fr 1.5fr 2fr;
+  padding: 1rem 1.5rem;
+  font-weight: bold;
+  color: #d0d0d0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.pool-row {
+  display: grid;
+  grid-template-columns: 3fr 1fr 1.5fr 2fr 1.5fr 1.5fr 2fr;
+  padding: 1.5rem;
+  align-items: center;
+  margin-bottom: 1rem;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.pool-row:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 30px rgba(0, 0, 0, 0.15);
+}
+
+.asset {
+  display: flex;
+  align-items: center;
+}
+
+.asset-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: bold;
+  color: white;
+  margin-right: 1rem;
+  font-size: 1.2rem;
+}
+
+.asset-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.asset-name {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.asset-symbol {
+  font-size: 0.9rem;
+  opacity: 0.7;
+}
+
+.apy-value {
+  font-weight: bold;
+  font-size: 1.2rem;
+  color: #00d0ff;
+  margin-bottom: 0.25rem;
+}
+
+.apy-label {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.duration-value {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.duration-fee {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.staked-value,
+.stake-value,
+.rewards-value {
+  font-weight: bold;
+  margin-bottom: 0.25rem;
+}
+
+.staked-symbol,
+.stake-symbol,
+.rewards-symbol {
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.btn-action {
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  font-size: 0.9rem;
+}
+
+.btn-action.stake {
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  color: white;
+}
+
+.btn-action.unstake {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-action:hover {
+  transform: translateY(-2px);
+}
+
+.btn-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.auth-required-message {
+  display: flex;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  align-items: center;
+}
+
+.message-icon {
+  font-size: 2.5rem;
+  margin-right: 1.5rem;
+}
+
+.message-content h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.5rem;
+}
+
+.message-content p {
+  margin: 0 0 1rem;
+  opacity: 0.8;
+}
+
+.message-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-secondary,
+.btn-gradient {
+  padding: 0.8rem 1.5rem;
+  border-radius: 8px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: inline-block;
+  text-align: center;
+}
+
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.btn-gradient {
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  color: white;
+  border: none;
+}
+
+.btn-secondary:hover,
+.btn-gradient:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 114, 255, 0.3);
+}
+
+.staking-info {
+  padding: 2rem;
+}
+
+.staking-info h3 {
+  margin-top: 0;
+  margin-bottom: 1rem;
+  font-size: 1.5rem;
+}
+
+.staking-info p {
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+}
+
+.info-item {
+  text-align: center;
+}
+
+.info-icon {
+  font-size: 2rem;
+  margin-bottom: 1rem;
+}
+
+.info-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.info-text {
+  font-size: 0.9rem;
+  opacity: 0.8;
+  line-height: 1.4;
+}
+
+/* Modal Styles */
+.modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.7);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-container {
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.modal-close:hover {
+  opacity: 1;
+}
+
+.modal-body {
+  padding: 1.5rem;
+}
+
+.modal-footer {
+  padding: 1.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.input-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: bold;
+}
+
+.input-modern {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.8rem 1rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  width: 100%;
+  transition: all 0.3s ease;
+}
+
+.input-modern:focus {
+  outline: none;
+  border-color: #00c6ff;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.input-modern::placeholder {
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.input-with-max {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.input-with-max .input-modern {
+  flex: 1;
+}
+
+.max-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: all 0.3s ease;
+}
+
+.max-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.input-hint {
+  margin-top: 0.5rem;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.period-selector {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.period-option {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  padding: 0.6rem 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.period-option:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.period-option.selected {
+  background: linear-gradient(90deg, #00c6ff, #0072ff);
+  border-color: transparent;
+}
+
+.staking-summary {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 8px;
+  padding: 1.25rem;
+  margin-top: 1.5rem;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.75rem;
+}
+
+.summary-row:last-child {
+  margin-bottom: 0;
+}
+
+.summary-row.highlight {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-weight: bold;
+}
+
+.summary-row.highlight .summary-value {
+  color: #00d0ff;
+}
+
+.warning-message {
+  background: rgba(255, 183, 77, 0.1);
+  border: 1px solid rgba(255, 183, 77, 0.3);
+  border-radius: 8px;
+  padding: 1rem;
+  margin-top: 1.5rem;
+  display: flex;
+  align-items: flex-start;
+  gap: 1rem;
+}
+
+.warning-icon {
+  font-size: 1.5rem;
+}
+
+.warning-message p {
+  margin: 0 0 0.5rem;
+}
+
+.warning-message p:last-child {
+  margin: 0;
+}
+
+/* Responsive styles */
+@media (max-width: 1200px) {
+  .staking-page {
+    padding: 1.5rem;
+  }
+  
+  .pools-header,
+  .pool-row {
+    grid-template-columns: 2.5fr 1fr 1.5fr 1.5fr 1.5fr 1.5fr 1.5fr;
+  }
+}
+
+@media (max-width: 992px) {
+  .pools-header {
+    display: none;
+  }
+  
+  .pool-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .pool-column {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .pool-column::before {
+    content: attr(class);
+    text-transform: uppercase;
+    font-size: 0.8rem;
+    font-weight: bold;
+    opacity: 0.7;
+  }
+  
+  .pool-column.asset::before {
+    content: "Asset";
+  }
+  
+  .pool-column.apy::before {
+    content: "APY";
+  }
+  
+  .pool-column.duration::before {
+    content: "Lock Period";
+  }
+  
+  .pool-column.total-staked::before {
+    content: "Total Staked";
+  }
+  
+  .pool-column.my-stake::before {
+    content: "My Stake";
+  }
+  
+  .pool-column.rewards::before {
+    content: "Rewards";
+  }
+  
+  .pool-column.actions::before {
+    content: "";
+  }
+  
+  .asset {
+    justify-content: flex-start;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .staking-page {
+    padding: 1rem;
+  }
+  
+  .auth-required-message {
+    flex-direction: column;
+    text-align: center;
+    padding: 1.5rem;
+  }
+  
+  .message-icon {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+  
+  .message-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .modal-container {
+    max-width: 90%;
+  }
+  
+  .period-selector {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
