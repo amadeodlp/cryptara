@@ -108,6 +108,16 @@ if (app.Environment.IsDevelopment())
     }
 }
 
+// Force load environment variables
+builder.Configuration.AddEnvironmentVariables();
+
+// Print environment variables
+Console.WriteLine($"Infura URL: {builder.Configuration["Blockchain:InfuraUrl"]}");
+Console.WriteLine($"TokenContractAddress: {builder.Configuration["Blockchain:TokenContractAddress"]}");
+
+var app = builder.Build();
+app.MapGet("/", () => "Hello, Railway!");
+
 app.UseHttpsRedirection();
 app.UseCors("AllowReactApp");
 app.UseAuthentication();
