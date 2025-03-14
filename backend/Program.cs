@@ -121,5 +121,10 @@ app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-
+try {
 app.Run();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Unhandled Exception: {ex}");
+}
