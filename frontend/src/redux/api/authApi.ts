@@ -27,7 +27,12 @@ interface LoginResponse {
 }
 
 // Get the API URL from environment variables
-const apiUrl = import.meta.env.VITE_API_URL || '';
+let apiUrl = import.meta.env.VITE_API_URL || '';
+
+// Ensure the API URL starts with https:// if not already
+if (apiUrl && !apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+  apiUrl = `https://${apiUrl}`;
+}
 
 export const authApi = createApi({
   reducerPath: 'authApi',
@@ -45,21 +50,21 @@ export const authApi = createApi({
   endpoints: (builder) => ({
     login: builder.mutation<LoginResponse, LoginRequest>({
       query: (credentials) => ({
-        url: '/api/auth/login',
+        url: '/auth/login',
         method: 'POST',
         body: credentials,
       }),
     }),
     register: builder.mutation<RegisterResponse, RegisterRequest>({
       query: (userData) => ({
-        url: '/api/auth/register',
+        url: '/auth/register',
         method: 'POST',
         body: userData,
       }),
     }),
     logout: builder.mutation<void, void>({
       query: () => ({
-        url: '/api/auth/logout',
+        url: '/auth/logout',
         method: 'POST',
       }),
     }),
