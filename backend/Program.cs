@@ -90,9 +90,8 @@ builder.Services.AddCors(options =>
     });
 });
 
-app.UseCors("AllowAll");
-
 var app = builder.Build();
+app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
