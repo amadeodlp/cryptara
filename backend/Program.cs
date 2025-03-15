@@ -81,13 +81,16 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp", builder =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        builder.WithOrigins("http://localhost:3000", "https://amadeodlp.github.io")
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
     });
 });
+
+app.UseCors("AllowAll");
 
 var app = builder.Build();
 
@@ -117,7 +120,6 @@ Console.WriteLine($"TokenContractAddress: {builder.Configuration["Blockchain:Tok
 app.MapGet("/", () => "Hello, Railway!");
 
 app.UseHttpsRedirection();
-app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
