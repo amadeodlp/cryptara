@@ -21,12 +21,82 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     }
     else
     {
-        // For Railway, build connection string from environment variables
-        var connectionString = Environment.GetEnvironmentVariable("MYSQL_URL"); // Try the direct URL first
+        // For Railway deployment - handle multiple connection string formats
+        string connectionString = null;
         
+        // 1. Try to use MYSQL_URL if it's in standard format
+        var mysqlUrl = Environment.GetEnvironmentVariable("MYSQL_URL");
+        if (!string.IsNullOrEmpty(mysqlUrl))
+        {
+            // Check if it's in standard connection string format
+            if (mysqlUrl.StartsWith("Server=") || mysqlUrl.StartsWith("server=") || 
+                mysqlUrl.StartsWith("Host=") || mysqlUrl.StartsWith("host="))
+            {
+                connectionString = mysqlUrl;
+                Console.WriteLine("Using MYSQL_URL environment variable (standard format)");
+            }
+            // Check if it's in URL format (mysql://)
+            else if (mysqlUrl.StartsWith("mysql://"))
+            {
+                try 
+                {
+                    // Parse the URL format to standard connection string
+                    // Example: mysql://user:pass@host:port/dbname
+                    var uri = new Uri(mysqlUrl);
+                    var userInfo = uri.UserInfo.Split(':');
+                    var user = userInfo[0];
+                    var password = userInfo.Length > 1 ? userInfo[1] : "";
+                    var host = uri.Host;
+                    var port = uri.Port > 0 ? uri.Port : 3306;
+                    var database = uri.AbsolutePath.TrimStart('/');
+                    
+                    connectionString = $"Server={host};Port={port};Database={database};" +
+                                      $"Uid={user};Pwd={password};AllowPublicKeyRetrieval=true;ConnectionTimeout=30;Pooling=true;";
+                    
+                    Console.WriteLine("Parsed connection string from MYSQL_URL (URI format)");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to parse MYSQL_URL as URI: {ex.Message}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"MYSQL_URL is in unrecognized format: {mysqlUrl.Substring(0, Math.Min(10, mysqlUrl.Length))}...");
+            }
+        }
+        
+        // 2. If MYSQL_URL didn't work, try MYSQL_PUBLIC_URL
         if (string.IsNullOrEmpty(connectionString))
         {
-            // If MYSQL_URL isn't available, build connection string from individual parts
+            var mysqlPublicUrl = Environment.GetEnvironmentVariable("MYSQL_PUBLIC_URL");
+            if (!string.IsNullOrEmpty(mysqlPublicUrl) && mysqlPublicUrl.StartsWith("mysql://"))
+            {
+                try
+                {
+                    var uri = new Uri(mysqlPublicUrl);
+                    var userInfo = uri.UserInfo.Split(':');
+                    var user = userInfo[0];
+                    var password = userInfo.Length > 1 ? userInfo[1] : "";
+                    var host = uri.Host;
+                    var port = uri.Port > 0 ? uri.Port : 3306;
+                    var database = uri.AbsolutePath.TrimStart('/');
+                
+                    connectionString = $"Server={host};Port={port};Database={database};" +
+                                      $"Uid={user};Pwd={password};AllowPublicKeyRetrieval=true;SslMode=Required;ConnectionTimeout=30;Pooling=true;";
+                
+                    Console.WriteLine("Using MYSQL_PUBLIC_URL for connection");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to parse MYSQL_PUBLIC_URL as URI: {ex.Message}");
+                }
+            }
+        }
+        
+        // 3. Try building from individual environment variables
+        if (string.IsNullOrEmpty(connectionString))
+        {
             var mysqlHost = Environment.GetEnvironmentVariable("MYSQLHOST");
             var mysqlPort = Environment.GetEnvironmentVariable("MYSQLPORT");
             var mysqlDatabase = Environment.GetEnvironmentVariable("MYSQLDATABASE") ?? 
@@ -34,16 +104,22 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             var mysqlUser = Environment.GetEnvironmentVariable("MYSQLUSER");
             var mysqlPassword = Environment.GetEnvironmentVariable("MYSQLPASSWORD");
             
+            Console.WriteLine($"MYSQLHOST: {mysqlHost}");
+            Console.WriteLine($"MYSQLPORT: {mysqlPort}");
+            Console.WriteLine($"MYSQLDATABASE: {mysqlDatabase}");
+            Console.WriteLine($"MYSQLUSER: {mysqlUser}");
+            Console.WriteLine($"MYSQLPASSWORD: {(string.IsNullOrEmpty(mysqlPassword) ? "null" : "set")}");
+            
             if (!string.IsNullOrEmpty(mysqlHost) && 
                 !string.IsNullOrEmpty(mysqlDatabase) && 
                 !string.IsNullOrEmpty(mysqlUser) && 
                 !string.IsNullOrEmpty(mysqlPassword))
             {
-                // Build the connection string
-                connectionString = $"Server={mysqlHost};Port={mysqlPort ?? "3306"};Database={mysqlDatabase};"
-                                + $"Uid={mysqlUser};Pwd={mysqlPassword}";
+                connectionString = $"Server={mysqlHost};Port={mysqlPort ?? "3306"};Database={mysqlDatabase};" +
+                                  $"Uid={mysqlUser};Pwd={mysqlPassword};AllowPublicKeyRetrieval=true;ConnectionTimeout=30;Pooling=true;";
                 
-                Console.WriteLine("Using built MySQL connection string from environment variables");
+                Console.WriteLine("Using individual MySQL environment variables for connection");
+                Console.WriteLine($"Connection string (partial): Server={mysqlHost};Port={mysqlPort ?? "3306"};Database={mysqlDatabase};Uid={mysqlUser};Pwd=***");
             }
             else
             {
@@ -51,10 +127,6 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
                 Console.WriteLine("Using connection string from configuration");
             }
-        }
-        else
-        {
-            Console.WriteLine("Using MYSQL_URL environment variable");
         }
         
         if (string.IsNullOrEmpty(connectionString))
@@ -167,6 +239,20 @@ using (var scope = app.Services.CreateScope())
     
     try
     {
+        // First, test the connection
+        logger.LogInformation("Testing database connection...");
+        bool canConnect = false;
+        try
+        {
+            canConnect = dbContext.Database.CanConnect();
+            logger.LogInformation($"Database connection test result: {(canConnect ? "SUCCESS" : "FAILED")}");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Database connection test failed with exception");
+            // Continue with migration attempt even if connection test fails
+        }
+
         logger.LogInformation("Applying database migrations...");
         // Apply any pending migrations - safer than EnsureCreated() for production
         dbContext.Database.Migrate();
@@ -178,9 +264,6 @@ using (var scope = app.Services.CreateScope())
         throw; // Rethrow to prevent app startup if db migration fails
     }
 }
-
-// Commented out as we moved this to the top
-// builder.Configuration.AddEnvironmentVariables();
 
 // Print environment variables
 Console.WriteLine($"Infura URL: {builder.Configuration["Blockchain:InfuraUrl"]}");
