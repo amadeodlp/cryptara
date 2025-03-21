@@ -94,7 +94,7 @@ public class UserService : IUserService
             // Create the user
             var newUser = new User
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid().ToString("N").Substring(0, 20),
                 Name = name,
                 Email = email,
                 PasswordHash = HashPassword(password),
@@ -107,7 +107,7 @@ public class UserService : IUserService
             // Create a wallet for the new user
             var wallet = new Wallet
             {
-                Id = Guid.NewGuid().ToString(),
+                Id = Guid.NewGuid().ToString("N").Substring(0, 20),
                 UserId = newUser.Id,
                 IsConnected = false,
                 CreatedAt = DateTime.UtcNow
