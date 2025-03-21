@@ -23,16 +23,26 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Map entity classes to lowercase table names
+        // Map entity classes to lowercase table names with explicit ID configuration
         modelBuilder.Entity<User>().ToTable("users");
+        modelBuilder.Entity<User>().Property(u => u.Id).HasColumnType("varchar(255)");
         modelBuilder.Entity<Transaction>().ToTable("transactions");
+        modelBuilder.Entity<Transaction>().Property(t => t.Id).HasColumnType("varchar(255)");
+        
         modelBuilder.Entity<Wallet>().ToTable("wallets");
+        modelBuilder.Entity<Wallet>().Property(w => w.Id).HasColumnType("varchar(255)");
+        
         modelBuilder.Entity<Token>().ToTable("tokens");
+        modelBuilder.Entity<Token>().Property(t => t.Id).HasColumnType("varchar(255)");
         modelBuilder.Entity<TokenBalance>().ToTable("tokenbalances");
+        
         modelBuilder.Entity<StakingPosition>().ToTable("stakingpositions");
+        modelBuilder.Entity<StakingPosition>().Property(sp => sp.Id).HasColumnType("varchar(255)");
         modelBuilder.Entity<StakingApyRate>().ToTable("stakingapyrates");
         modelBuilder.Entity<UserWallet>().ToTable("userwallets");
+        
         modelBuilder.Entity<Notification>().ToTable("notifications");
+        modelBuilder.Entity<Notification>().Property(n => n.Id).HasColumnType("varchar(255)");
 
         // Configure relationships
         modelBuilder.Entity<User>()
