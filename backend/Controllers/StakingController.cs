@@ -25,36 +25,49 @@ public class StakingController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetUserStakingPositions()
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString))
         {
             return Unauthorized(new { message = "User not authenticated" });
         }
 
-        var stakingPositions = await _stakingService.GetUserStakingPositionsAsync(userId);
-        return Ok(stakingPositions);
+        try
+        {
+            int userId = int.Parse(userIdString);
+            var stakingPositions = await _stakingService.GetUserStakingPositionsAsync(userId);
+            return Ok(stakingPositions);
+        }
+        catch (FormatException)
+        {
+            return BadRequest(new { message = "Invalid user ID format" });
+        }
     }
 
     [HttpPost("stake")]
     public async Task<IActionResult> StakeTokens([FromBody] StakeRequest request)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString))
         {
             return Unauthorized(new { message = "User not authenticated" });
         }
 
-        _logger.LogInformation("Staking request: {Amount} {TokenSymbol} for user {UserId}", 
-            request.Amount, request.TokenSymbol, userId);
-
         try
         {
+            int userId = int.Parse(userIdString);
+            _logger.LogInformation("Staking request: {Amount} {TokenSymbol} for user {UserId}", 
+                request.Amount, request.TokenSymbol, userId);
+
             var result = await _stakingService.StakeTokensAsync(userId, request.TokenSymbol, request.Amount, request.Duration);
             return Ok(result);
         }
+        catch (FormatException)
+        {
+            return BadRequest(new { message = "Invalid user ID format" });
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during token staking for user {UserId}", userId);
+            _logger.LogError(ex, "Error during token staking for user {UserId}", userIdString);
             return BadRequest(new { message = ex.Message });
         }
     }
@@ -62,23 +75,30 @@ public class StakingController : ControllerBase
     [HttpPost("unstake/{stakingId}")]
     public async Task<IActionResult> UnstakeTokens(string stakingId)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString))
         {
             return Unauthorized(new { message = "User not authenticated" });
         }
 
-        _logger.LogInformation("Unstaking request: StakingId {StakingId} for user {UserId}", 
-            stakingId, userId);
-
         try
         {
-            var result = await _stakingService.UnstakeTokensAsync(userId, stakingId);
+            int userId = int.Parse(userIdString);
+            int stakingIdInt = int.Parse(stakingId);
+            
+            _logger.LogInformation("Unstaking request: StakingId {StakingId} for user {UserId}", 
+                stakingIdInt, userId);
+
+            var result = await _stakingService.UnstakeTokensAsync(userId, stakingIdInt);
             return Ok(result);
+        }
+        catch (FormatException)
+        {
+            return BadRequest(new { message = "Invalid ID format" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error during token unstaking for user {UserId}", userId);
+            _logger.LogError(ex, "Error during token unstaking for user {UserId}", userIdString);
             return BadRequest(new { message = ex.Message });
         }
     }
@@ -86,20 +106,27 @@ public class StakingController : ControllerBase
     [HttpGet("rewards/{stakingId}")]
     public async Task<IActionResult> GetStakingRewards(string stakingId)
     {
-        var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        if (string.IsNullOrEmpty(userId))
+        var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        if (string.IsNullOrEmpty(userIdString))
         {
             return Unauthorized(new { message = "User not authenticated" });
         }
 
         try
         {
-            var rewards = await _stakingService.GetStakingRewardsAsync(userId, stakingId);
+            int userId = int.Parse(userIdString);
+            int stakingIdInt = int.Parse(stakingId);
+            
+            var rewards = await _stakingService.GetStakingRewardsAsync(userId, stakingIdInt);
             return Ok(rewards);
+        }
+        catch (FormatException)
+        {
+            return BadRequest(new { message = "Invalid ID format" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting staking rewards for user {UserId}", userId);
+            _logger.LogError(ex, "Error getting staking rewards for user {UserId}", userIdString);
             return BadRequest(new { message = ex.Message });
         }
     }

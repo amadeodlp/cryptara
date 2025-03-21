@@ -235,7 +235,7 @@ public class AuthController : ControllerBase
             // Generate different formats of IDs for testing
             var idFormats = new Dictionary<string, object>
             {
-                { "No ID (auto-generated)", null },
+                { "No ID (auto-generated)", 0 },
                 { "Numeric", 42 },
                 { "Zero", 0 }
             };

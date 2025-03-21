@@ -83,7 +83,7 @@ public class StakingService : IStakingService
 
             // Send notification
             await _notificationService.SendNotificationAsync(
-                userId, 
+                userId.ToString(), 
                 "Staking Successful", 
                 $"You have successfully staked {amount} {tokenSymbol} for {duration} days with {apyRate.APY}% APY."
             );
@@ -183,7 +183,7 @@ public class StakingService : IStakingService
                 : $"Staking completed. You received {stakingPosition.Amount} {stakingPosition.TokenSymbol} plus {rewardAmount} in rewards.";
 
             await _notificationService.SendNotificationAsync(
-                userId,
+                userId.ToString(),
                 "Unstaking Completed",
                 notificationMessage
             );
