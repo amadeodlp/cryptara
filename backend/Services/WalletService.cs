@@ -6,12 +6,12 @@ namespace FinanceSimplified.Services;
 
 public interface IWalletService
 {
-    Task<Wallet?> GetWalletByUserIdAsync(string userId);
+    Task<Wallet?> GetWalletByUserIdAsync(int userId);
     Task<Wallet?> GetWalletByAddressAsync(string address);
-    Task<bool> ConnectWalletAsync(string userId, string address);
-    Task<bool> DisconnectWalletAsync(string userId);
-    Task<List<TokenBalanceDto>> GetTokenBalancesAsync(string userId);
-    Task<bool> UpdateTokenBalanceAsync(string userId, string tokenId, decimal amount);
+    Task<bool> ConnectWalletAsync(int userId, string address);
+    Task<bool> DisconnectWalletAsync(int userId);
+    Task<List<TokenBalanceDto>> GetTokenBalancesAsync(int userId);
+    Task<bool> UpdateTokenBalanceAsync(int userId, int tokenId, decimal amount);
 }
 
 public class WalletService : IWalletService
@@ -25,7 +25,7 @@ public class WalletService : IWalletService
         _logger = logger;
     }
 
-    public async Task<Wallet?> GetWalletByUserIdAsync(string userId)
+    public async Task<Wallet?> GetWalletByUserIdAsync(int userId)
     {
         return await _dbContext.Wallets
             .Include(w => w.TokenBalances)
@@ -41,7 +41,7 @@ public class WalletService : IWalletService
             .SingleOrDefaultAsync(w => w.Address == address);
     }
 
-    public async Task<bool> ConnectWalletAsync(string userId, string address)
+    public async Task<bool> ConnectWalletAsync(int userId, string address)
     {
         var wallet = await _dbContext.Wallets.SingleOrDefaultAsync(w => w.UserId == userId);
         if (wallet == null)
@@ -58,7 +58,7 @@ public class WalletService : IWalletService
         return true;
     }
 
-    public async Task<bool> DisconnectWalletAsync(string userId)
+    public async Task<bool> DisconnectWalletAsync(int userId)
     {
         var wallet = await _dbContext.Wallets.SingleOrDefaultAsync(w => w.UserId == userId);
         if (wallet == null)
@@ -74,7 +74,7 @@ public class WalletService : IWalletService
         return true;
     }
 
-    public async Task<List<TokenBalanceDto>> GetTokenBalancesAsync(string userId)
+    public async Task<List<TokenBalanceDto>> GetTokenBalancesAsync(int userId)
     {
         var wallet = await _dbContext.Wallets
             .Include(w => w.TokenBalances)
@@ -97,7 +97,7 @@ public class WalletService : IWalletService
         }).ToList();
     }
 
-    public async Task<bool> UpdateTokenBalanceAsync(string userId, string tokenId, decimal amount)
+    public async Task<bool> UpdateTokenBalanceAsync(int userId, int tokenId, decimal amount)
     {
         var wallet = await _dbContext.Wallets.SingleOrDefaultAsync(w => w.UserId == userId);
         if (wallet == null)

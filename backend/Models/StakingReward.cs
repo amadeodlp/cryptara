@@ -4,7 +4,7 @@ namespace FinanceSimplified.Models;
 
 public class StakingReward
 {
-    public string StakingId { get; set; } = string.Empty;
+    public int StakingId { get; set; }
     
     public string TokenSymbol { get; set; } = string.Empty;
     

@@ -6,10 +6,10 @@ namespace FinanceSimplified.Services;
 
 public interface ITransactionService
 {
-    Task<Transaction?> GetTransactionByIdAsync(string id);
-    Task<List<TransactionDto>> GetUserTransactionsAsync(string userId, int skip = 0, int take = 20);
-    Task<string> CreateTransactionAsync(Transaction transaction);
-    Task<bool> UpdateTransactionStatusAsync(string id, TransactionStatus status);
+    Task<Transaction?> GetTransactionByIdAsync(int id);
+    Task<List<TransactionDto>> GetUserTransactionsAsync(int userId, int skip = 0, int take = 20);
+    Task<int> CreateTransactionAsync(Transaction transaction);
+    Task<bool> UpdateTransactionStatusAsync(int id, TransactionStatus status);
 }
 
 public class TransactionService : ITransactionService
@@ -23,12 +23,12 @@ public class TransactionService : ITransactionService
         _logger = logger;
     }
 
-    public async Task<Transaction?> GetTransactionByIdAsync(string id)
+    public async Task<Transaction?> GetTransactionByIdAsync(int id)
     {
         return await _dbContext.Transactions.FindAsync(id);
     }
 
-    public async Task<List<TransactionDto>> GetUserTransactionsAsync(string userId, int skip = 0, int take = 20)
+    public async Task<List<TransactionDto>> GetUserTransactionsAsync(int userId, int skip = 0, int take = 20)
     {
         var transactions = await _dbContext.Transactions
             .Where(t => t.UserId == userId)
@@ -57,14 +57,14 @@ public class TransactionService : ITransactionService
         return transactions;
     }
 
-    public async Task<string> CreateTransactionAsync(Transaction transaction)
+    public async Task<int> CreateTransactionAsync(Transaction transaction)
     {
         _dbContext.Transactions.Add(transaction);
         await _dbContext.SaveChangesAsync();
         return transaction.Id;
     }
 
-    public async Task<bool> UpdateTransactionStatusAsync(string id, TransactionStatus status)
+    public async Task<bool> UpdateTransactionStatusAsync(int id, TransactionStatus status)
     {
         var transaction = await _dbContext.Transactions.FindAsync(id);
         if (transaction == null)

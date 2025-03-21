@@ -20,7 +20,7 @@ public class StakingService : IStakingService
         _logger = logger;
     }
 
-    public async Task<List<StakingPosition>> GetUserStakingPositionsAsync(string userId)
+    public async Task<List<StakingPosition>> GetUserStakingPositionsAsync(int userId)
     {
         return await _context.StakingPositions
             .Where(p => p.UserId == userId)
@@ -28,7 +28,7 @@ public class StakingService : IStakingService
             .ToListAsync();
     }
 
-    public async Task<StakingResult> StakeTokensAsync(string userId, string tokenSymbol, decimal amount, int duration)
+    public async Task<StakingResult> StakeTokensAsync(int userId, string tokenSymbol, decimal amount, int duration)
     {
         if (amount <= 0)
         {
@@ -59,10 +59,8 @@ public class StakingService : IStakingService
         }
 
         // Create staking position
-        var stakingId = Guid.NewGuid().ToString();
         var stakingPosition = new StakingPosition
         {
-            Id = stakingId,
             UserId = userId,
             TokenSymbol = tokenSymbol,
             Amount = amount,
@@ -95,7 +93,7 @@ public class StakingService : IStakingService
             return new StakingResult
             {
                 Success = true,
-                StakingId = stakingId,
+                StakingId = stakingPosition.Id,
                 Message = $"Successfully staked {amount} {tokenSymbol}",
                 StakingPosition = stakingPosition
             };
@@ -108,7 +106,7 @@ public class StakingService : IStakingService
         }
     }
 
-    public async Task<StakingResult> UnstakeTokensAsync(string userId, string stakingId)
+    public async Task<StakingResult> UnstakeTokensAsync(int userId, int stakingId)
     {
         var stakingPosition = await _context.StakingPositions
             .FirstOrDefaultAsync(p => p.Id == stakingId && p.UserId == userId);
@@ -167,7 +165,6 @@ public class StakingService : IStakingService
             // Create transaction record
             var stakingTransaction = new Transaction
             {
-                Id = Guid.NewGuid().ToString(),
                 UserId = userId,
                 Type = TransactionType.Unstake,
                 TokenSymbol = stakingPosition.TokenSymbol,
@@ -214,7 +211,7 @@ public class StakingService : IStakingService
         }
     }
 
-    public async Task<StakingReward> GetStakingRewardsAsync(string userId, string stakingId)
+    public async Task<StakingReward> GetStakingRewardsAsync(int userId, int stakingId)
     {
         var stakingPosition = await _context.StakingPositions
             .FirstOrDefaultAsync(p => p.Id == stakingId && p.UserId == userId);

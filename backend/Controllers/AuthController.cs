@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Data;
+using System.Reflection;
 
 namespace FinanceSimplified.Controllers;
 
@@ -118,21 +119,35 @@ public class AuthController : ControllerBase
             // Create a test ID to check the format
             var testId = Guid.NewGuid().ToString("N").Substring(0, 20);
             
+            // Use an await statement to make this method truly async
+            await Task.Yield();
+            
             // Get the User entity type
             var userEntityType = dbContext.Model.FindEntityType(typeof(FinanceSimplified.Models.User));
-            var userProperties = userEntityType.GetProperties().Select(p => new {
-                Name = p.Name,
-                ColumnName = p.GetColumnName(),
-                ClrType = p.ClrType.Name,
-                ProviderClrType = p.GetColumnType(),
-                IsKey = p.IsKey()
-            }).ToList();
-            
-            return Ok(new {
-                TestId = testId,
-                TestIdLength = testId.Length,
-                UserProperties = userProperties
-            });
+            if (userEntityType != null)
+            {
+                var userProperties = userEntityType.GetProperties().Select(p => new {
+                    Name = p.Name,
+                    ColumnName = p.GetColumnName(),
+                    ClrType = p.ClrType.Name,
+                    ProviderClrType = p.GetColumnType(),
+                    IsKey = p.IsKey()
+                }).ToList();
+                
+                return Ok(new {
+                    TestId = testId,
+                    TestIdLength = testId.Length,
+                    UserProperties = userProperties
+                });
+            }
+            else
+            {
+                return Ok(new {
+                    TestId = testId,
+                    TestIdLength = testId.Length,
+                    Error = "Could not find User entity type"
+                });
+            }
         }
         catch (Exception ex)
         {
@@ -161,7 +176,7 @@ public class AuthController : ControllerBase
                 
                 var result = await command.ExecuteScalarAsync();
                 if (result != null) {
-                    sqlVersion = result.ToString();
+                sqlVersion = result.ToString() ?? "Unknown";
                 }
                 
                 await connection.CloseAsync();
@@ -218,13 +233,11 @@ public class AuthController : ControllerBase
             var dbContext = HttpContext.RequestServices.GetRequiredService<FinanceSimplified.Data.ApplicationDbContext>();
             
             // Generate different formats of IDs for testing
-            var idFormats = new Dictionary<string, string>
+            var idFormats = new Dictionary<string, object>
             {
-                { "Standard GUID", Guid.NewGuid().ToString() },
-                { "No hyphens", Guid.NewGuid().ToString("N") },
-                { "Truncated to 20", Guid.NewGuid().ToString("N").Substring(0, 20) },
-                { "Numeric only", "123456789012345678" }, // Numeric ID to test if the column is actually INTEGER/SERIAL
-                { "Short", "test" } // Very short ID to see if there's a minimum length constraint
+                { "No ID (auto-generated)", null },
+                { "Numeric", 42 },
+                { "Zero", 0 }
             };
             
             var results = new List<object>();
@@ -245,6 +258,13 @@ public class AuthController : ControllerBase
                         PasswordHash = "TestHash",
                         CreatedAt = DateTime.UtcNow
                     };
+                    
+                    // Conditionally set ID if provided
+                    if (format.Value != null)
+                    {
+                        // Use reflection to set the ID if a value was provided
+                        typeof(FinanceSimplified.Models.User).GetProperty("Id").SetValue(user, format.Value);
+                    }
                     
                     // Add to db and save
                     dbContext.Users.Add(user);
