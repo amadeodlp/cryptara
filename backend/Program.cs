@@ -260,6 +260,39 @@ using (var scope = app.Services.CreateScope())
         // Apply any pending migrations - safer than EnsureCreated() for production
         dbContext.Database.Migrate();
         logger.LogInformation("Database migrations applied successfully");
+        
+        // Fix schema issues if needed
+        if (!app.Environment.IsDevelopment())
+        {
+            logger.LogInformation("Railway deployment detected. Checking database schema...");
+            try 
+            {
+                // First, check if we're running on MySQL or SQLite
+                if (dbContext.Database.GetDbConnection().GetType().Name.Contains("MySql"))
+                {
+                    // Use raw SQL to check if the id column is int and change it to varchar if needed
+                    var connection = dbContext.Database.GetDbConnection();
+                    await connection.OpenAsync();
+                    
+                    var command = connection.CreateCommand();
+                    command.CommandText = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS " +
+                                         "WHERE TABLE_NAME = 'users' AND COLUMN_NAME = 'id'";
+                                     
+                    var idDataType = (await command.ExecuteScalarAsync())?.ToString()?.ToLower();
+                    
+                    // Log what we found
+                    logger.LogInformation("Users table id column is of type: {IdType}", idDataType ?? "unknown");
+                    
+                    // We adapted our code to use auto-generated IDs, so we don't need to change the schema
+                    await connection.CloseAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Error checking database schema");
+                // Don't fail startup if schema check fails
+            }
+        }
     }
     catch (Exception ex)
     {

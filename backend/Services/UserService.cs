@@ -88,33 +88,52 @@ public class UserService : IUserService
 
         try 
         {
+            // Log the detailed process
+            _logger.LogInformation("Starting user registration process for {Email}", email);
+            
             // Use a transaction to ensure atomicity
             using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
-            // Create the user
+            // Create the user without specifying an ID - let the database generate it
             var newUser = new User
             {
-                Id = Guid.NewGuid().ToString("N").Substring(0, 20),
                 Name = name,
                 Email = email,
                 PasswordHash = HashPassword(password),
                 CreatedAt = DateTime.UtcNow
             };
 
+            _logger.LogInformation("Adding user to database with ID: {UserId}", userId);
             _dbContext.Users.Add(newUser);
-            await _dbContext.SaveChangesAsync(); // Save to generate the ID
             
-            // Create a wallet for the new user
+            try {
+                await _dbContext.SaveChangesAsync(); // Save to generate the ID
+                _logger.LogInformation("Successfully saved user with auto-generated ID: {UserId}", newUser.Id);
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Error saving user");
+                throw; // Re-throw to be caught by outer catch block
+            }
+            
+            // Create a wallet for the new user without specifying an ID
             var wallet = new Wallet
             {
-                Id = Guid.NewGuid().ToString("N").Substring(0, 20),
                 UserId = newUser.Id,
                 IsConnected = false,
                 CreatedAt = DateTime.UtcNow
             };
             
+            _logger.LogInformation("Adding wallet to database for user {UserId}", newUser.Id);
             _dbContext.Wallets.Add(wallet);
-            await _dbContext.SaveChangesAsync();
+            
+            try {
+                await _dbContext.SaveChangesAsync();
+                _logger.LogInformation("Successfully saved wallet with auto-generated ID: {WalletId}", wallet.Id);
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Error saving wallet");
+                throw; // Re-throw to be caught by outer catch block
+            }
 
             // Get predefined tokens
             var tokens = await _dbContext.Tokens.Where(t => t.IsActive).ToListAsync();
@@ -133,10 +152,19 @@ public class UserService : IUserService
                 _dbContext.TokenBalances.Add(tokenBalance);
             }
             
-            await _dbContext.SaveChangesAsync();
-            await transaction.CommitAsync();
-            
-            return true;
+            try {
+                await _dbContext.SaveChangesAsync();
+                _logger.LogInformation("Successfully saved token balances for wallet {WalletId}", wallet.Id);
+                
+                await transaction.CommitAsync();
+                _logger.LogInformation("Successfully committed transaction for user {UserId}", newUser.Id);
+                
+                return true;
+            }
+            catch (Exception ex) {
+                _logger.LogError(ex, "Error saving token balances or committing transaction");
+                throw; // Re-throw to be caught by outer catch block
+            }
         }
         catch (Exception ex)
         {

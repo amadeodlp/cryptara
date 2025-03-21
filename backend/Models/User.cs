@@ -2,7 +2,8 @@ namespace FinanceSimplified.Models;
 
 public class User
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString("N").Substring(0, 20); // Shorter ID format without hyphens
+    // Don't set a default value - let the database generate the ID
+    public string Id { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;

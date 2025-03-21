@@ -27,32 +27,28 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>().ToTable("users");
         modelBuilder.Entity<User>()
             .Property(u => u.Id)
-            .HasColumnType("varchar(20)")
-            .ValueGeneratedNever()
+            .ValueGeneratedOnAdd()
             .HasColumnName("id");
         modelBuilder.Entity<User>().HasKey(u => u.Id);
         modelBuilder.Entity<User>().Ignore(u => u.LastLoginAt);
         modelBuilder.Entity<Transaction>().ToTable("transactions");
         modelBuilder.Entity<Transaction>()
             .Property(t => t.Id)
-            .HasColumnType("varchar(20)")
-            .ValueGeneratedNever()
+            .ValueGeneratedOnAdd()
             .HasColumnName("id");
         modelBuilder.Entity<Transaction>().HasKey(t => t.Id);
         
         modelBuilder.Entity<Wallet>().ToTable("wallets");
         modelBuilder.Entity<Wallet>()
             .Property(w => w.Id)
-            .HasColumnType("varchar(20)")
-            .ValueGeneratedNever()
+            .ValueGeneratedOnAdd()
             .HasColumnName("id");
         modelBuilder.Entity<Wallet>().HasKey(w => w.Id);
         
         modelBuilder.Entity<Token>().ToTable("tokens");
         modelBuilder.Entity<Token>()
             .Property(t => t.Id)
-            .HasColumnType("varchar(20)")
-            .ValueGeneratedNever()
+            .ValueGeneratedOnAdd()
             .HasColumnName("id");
         modelBuilder.Entity<Token>().HasKey(t => t.Id);
         modelBuilder.Entity<TokenBalance>().ToTable("tokenbalances");
@@ -60,8 +56,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<StakingPosition>().ToTable("stakingpositions");
         modelBuilder.Entity<StakingPosition>()
             .Property(sp => sp.Id)
-            .HasColumnType("varchar(20)")
-            .ValueGeneratedNever()
+            .ValueGeneratedOnAdd()
             .HasColumnName("id");
         modelBuilder.Entity<StakingPosition>().HasKey(sp => sp.Id);
         modelBuilder.Entity<StakingApyRate>().ToTable("stakingapyrates");
@@ -70,8 +65,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Notification>().ToTable("notifications");
         modelBuilder.Entity<Notification>()
             .Property(n => n.Id)
-            .HasColumnType("varchar(20)")
-            .ValueGeneratedNever()
+            .ValueGeneratedOnAdd()
             .HasColumnName("id");
         modelBuilder.Entity<Notification>().HasKey(n => n.Id);
 
@@ -99,7 +93,8 @@ public class ApplicationDbContext : DbContext
             .WithMany(u => u.Transactions)
             .HasForeignKey(t => t.UserId);
 
-        // Seed data for development
+        // Seed data for development - only include this in development
+#if DEBUG
         modelBuilder.Entity<User>().HasData(
             new User
             {
@@ -131,6 +126,7 @@ public class ApplicationDbContext : DbContext
                 IsActive = true
             }
         );
+#endif
 
         // Seed data for staking APY rates
         modelBuilder.Entity<StakingApyRate>().HasData(
