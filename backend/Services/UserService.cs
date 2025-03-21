@@ -1,5 +1,6 @@
-using System.Security.Cryptography;
-using System.Text;
+using System.Security.Cryptography; // Still needed for legacy hash verification
+using System.Text; // Still needed for legacy hash verification
+using BCrypt.Net;
 using FinanceSimplified.Models;
 using FinanceSimplified.Data;
 using Microsoft.EntityFrameworkCore;
@@ -31,8 +32,32 @@ public class UserService : IUserService
         var user = await _dbContext.Users
             .SingleOrDefaultAsync(u => u.Email.ToLower() == email.ToLower());
         
-        // Return null if user not found or password is wrong
-        if (user == null || !VerifyPassword(password, user.PasswordHash))
+        if (user == null)
+            return null;
+            
+        bool isAuthenticated = false;
+        
+        // Check if the hash is in BCrypt format
+        if (user.PasswordHash.StartsWith("$2a$") || user.PasswordHash.StartsWith("$2b$") || user.PasswordHash.StartsWith("$2y$"))
+        {
+            // BCrypt hash - use BCrypt verification
+            isAuthenticated = BCrypt.Net.BCrypt.Verify(password, user.PasswordHash);
+        }
+        else
+        {
+            // Legacy SHA256 hash - verify with old method
+            isAuthenticated = VerifyPasswordLegacy(password, user.PasswordHash);
+            
+            // If authenticated with legacy hash, upgrade to BCrypt
+            if (isAuthenticated)
+            {
+                _logger.LogInformation("Upgrading password hash to BCrypt for user {Email}", user.Email);
+                user.PasswordHash = HashPassword(password);
+            }
+        }
+        
+        // Return null if password is wrong
+        if (!isAuthenticated)
             return null;
 
         // Update last login timestamp
@@ -93,15 +118,19 @@ public class UserService : IUserService
         return true;
     }
 
+    // This method is used for creating new password hashes with BCrypt
     private static string HashPassword(string password)
+    {
+        // Generate a salt and hash the password using BCrypt
+        return BCrypt.Net.BCrypt.HashPassword(password, BCrypt.Net.BCrypt.GenerateSalt(12));
+    }
+    
+    // Legacy SHA256 password verification - only for backwards compatibility
+    private static bool VerifyPasswordLegacy(string password, string hash)
     {
         using var sha256 = SHA256.Create();
         var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
-        return Convert.ToBase64String(hashedBytes);
-    }
-
-    private static bool VerifyPassword(string password, string hash)
-    {
-        return HashPassword(password) == hash;
+        var hashedPassword = Convert.ToBase64String(hashedBytes);
+        return hashedPassword == hash;
     }
 }

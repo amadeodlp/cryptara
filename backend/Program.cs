@@ -8,6 +8,9 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Force load environment variables - moved to top to ensure they're available for DB connection
+builder.Configuration.AddEnvironmentVariables();
+
 // Add database context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
@@ -18,8 +21,22 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     }
     else
     {
-        // Use SQL Server for production
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+        // For Railway, use the DATABASE_URL environment variable
+        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
+                               builder.Configuration.GetConnectionString("DefaultConnection");
+        
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new Exception("No database connection string provided. Set the DATABASE_URL environment variable or DefaultConnection in appsettings.json");
+        }
+        
+        // Automatically detect server version from connection string
+        options.UseMySql(
+            connectionString,
+            ServerVersion.AutoDetect(connectionString)
+        );
+        
+        Console.WriteLine("Using production database connection");
     }
 });
 
@@ -98,20 +115,40 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+else 
+{
+    // Still enable Swagger in production but on a specific route
+    app.UseSwagger();
+    app.UseSwaggerUI(c => {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Finance Simplified API V1");
+        c.RoutePrefix = "api-docs";
+    });
+}
+
+// Initialize the database - do this in both development and production
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var dbContext = services.GetRequiredService<ApplicationDbContext>();
     
-    // Initialize the database with seed data in development
-    using (var scope = app.Services.CreateScope())
+    try
     {
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Database.EnsureCreated(); // Creates the database if it doesn't exist
-        
-        // If you want to apply migrations instead, uncomment the line below:
-        // dbContext.Database.Migrate();
+        logger.LogInformation("Applying database migrations...");
+        // Apply any pending migrations - safer than EnsureCreated() for production
+        dbContext.Database.Migrate();
+        logger.LogInformation("Database migrations applied successfully");
+    }
+    catch (Exception ex)
+    {
+        logger.LogError(ex, "An error occurred while migrating the database");
+        throw; // Rethrow to prevent app startup if db migration fails
     }
 }
 
-// Force load environment variables
-builder.Configuration.AddEnvironmentVariables();
+// Commented out as we moved this to the top
+// builder.Configuration.AddEnvironmentVariables();
 
 // Print environment variables
 Console.WriteLine($"Infura URL: {builder.Configuration["Blockchain:InfuraUrl"]}");
