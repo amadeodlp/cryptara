@@ -21,13 +21,45 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     }
     else
     {
-        // For Railway, use the DATABASE_URL environment variable
-        var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") ?? 
-                               builder.Configuration.GetConnectionString("DefaultConnection");
+        // For Railway, build connection string from environment variables
+        var connectionString = Environment.GetEnvironmentVariable("MYSQL_URL"); // Try the direct URL first
         
         if (string.IsNullOrEmpty(connectionString))
         {
-            throw new Exception("No database connection string provided. Set the DATABASE_URL environment variable or DefaultConnection in appsettings.json");
+            // If MYSQL_URL isn't available, build connection string from individual parts
+            var mysqlHost = Environment.GetEnvironmentVariable("MYSQLHOST");
+            var mysqlPort = Environment.GetEnvironmentVariable("MYSQLPORT");
+            var mysqlDatabase = Environment.GetEnvironmentVariable("MYSQLDATABASE") ?? 
+                               Environment.GetEnvironmentVariable("MYSQL_DATABASE");
+            var mysqlUser = Environment.GetEnvironmentVariable("MYSQLUSER");
+            var mysqlPassword = Environment.GetEnvironmentVariable("MYSQLPASSWORD");
+            
+            if (!string.IsNullOrEmpty(mysqlHost) && 
+                !string.IsNullOrEmpty(mysqlDatabase) && 
+                !string.IsNullOrEmpty(mysqlUser) && 
+                !string.IsNullOrEmpty(mysqlPassword))
+            {
+                // Build the connection string
+                connectionString = $"Server={mysqlHost};Port={mysqlPort ?? "3306"};Database={mysqlDatabase};"
+                                + $"Uid={mysqlUser};Pwd={mysqlPassword}";
+                
+                Console.WriteLine("Using built MySQL connection string from environment variables");
+            }
+            else
+            {
+                // Fallback to configuration
+                connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+                Console.WriteLine("Using connection string from configuration");
+            }
+        }
+        else
+        {
+            Console.WriteLine("Using MYSQL_URL environment variable");
+        }
+        
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new Exception("No database connection string could be determined. Please configure your database connection.");
         }
         
         // Automatically detect server version from connection string
@@ -36,7 +68,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
             ServerVersion.AutoDetect(connectionString)
         );
         
-        Console.WriteLine("Using production database connection");
+        Console.WriteLine("MySQL database connection configured.");
     }
 });
 
