@@ -257,8 +257,8 @@ try
             bool canConnect = false;
             try
             {
-            canConnect = dbContext.Database.CanConnect();
-            logger.LogInformation($"Database connection test result: {(canConnect ? "SUCCESS" : "FAILED")}");
+                canConnect = dbContext.Database.CanConnect();
+                logger.LogInformation($"Database connection test result: {(canConnect ? "SUCCESS" : "FAILED")}");
             }
             catch (Exception ex)
             {
@@ -267,12 +267,14 @@ try
             }
 
             logger.LogInformation("Applying database migrations...");
-            try {
+            try 
+            {
                 // Apply any pending migrations - safer than EnsureCreated() for production
                 dbContext.Database.Migrate();
                 logger.LogInformation("Database migrations applied successfully");
             }
-            catch (Exception migrationEx) {
+            catch (Exception migrationEx) 
+            {
                 // If migration fails, try to ensure schema exists at minimum
                 logger.LogWarning(migrationEx, "Migration failed, attempting to ensure database exists");
                 dbContext.Database.EnsureCreated();
@@ -298,6 +300,12 @@ try
                     // Don't fail startup if schema check fails
                 }
             }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error in database initialization");
+            // Continue execution to allow application to start
+        }
     }
 }
 catch (Exception ex)
@@ -315,8 +323,10 @@ app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
-try {
-app.Run();
+
+try 
+{
+    app.Run();
 }
 catch (Exception ex)
 {
