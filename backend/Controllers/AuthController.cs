@@ -54,32 +54,46 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest model)
     {
-        _logger.LogInformation("Registration attempt for {Email}", model.Email);
-
-        // Check if email already exists
-        var existingUser = await _userService.GetByEmailAsync(model.Email);
-        if (existingUser != null)
+        try
         {
-            _logger.LogWarning("Registration failed: Email {Email} already exists", model.Email);
-            return BadRequest(new { message = "Email already exists" });
-        }
+            _logger.LogInformation("Registration attempt for {Email}", model.Email);
 
-        // Validate password
-        if (string.IsNullOrWhiteSpace(model.Password) || model.Password.Length < 6)
+            // Basic validation
+            if (string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.Name))
+            {
+                return BadRequest(new { message = "Email and name are required fields" });
+            }
+
+            // Check if email already exists
+            var existingUser = await _userService.GetByEmailAsync(model.Email);
+            if (existingUser != null)
+            {
+                _logger.LogWarning("Registration failed: Email {Email} already exists", model.Email);
+                return BadRequest(new { message = "Email already exists" });
+            }
+
+            // Validate password
+            if (string.IsNullOrWhiteSpace(model.Password) || model.Password.Length < 6)
+            {
+                return BadRequest(new { message = "Password must be at least 6 characters" });
+            }
+
+            // Register new user
+            var success = await _userService.RegisterAsync(model.Name, model.Email, model.Password);
+            if (!success)
+            {
+                _logger.LogError("Registration failed for {Email}", model.Email);
+                return StatusCode(500, new { message = "Failed to register user. Please try again later." });
+            }
+
+            _logger.LogInformation("Registration successful for {Email}", model.Email);
+            return Ok(new { message = "Registration successful" });
+        }
+        catch (Exception ex)
         {
-            return BadRequest(new { message = "Password must be at least 6 characters" });
+            _logger.LogError(ex, "Unhandled exception during registration for {Email}", model.Email);
+            return StatusCode(500, new { message = "An unexpected error occurred. Please try again later." });
         }
-
-        // Register new user
-        var success = await _userService.RegisterAsync(model.Name, model.Email, model.Password);
-        if (!success)
-        {
-            _logger.LogError("Registration failed for {Email}", model.Email);
-            return StatusCode(500, new { message = "Failed to register user" });
-        }
-
-        _logger.LogInformation("Registration successful for {Email}", model.Email);
-        return Ok(new { message = "Registration successful" });
     }
 }
 

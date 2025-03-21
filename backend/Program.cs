@@ -207,11 +207,14 @@ builder.Services.AddCors(options =>
         policy
             .AllowAnyOrigin()
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .WithExposedHeaders("Content-Disposition");
     });
 });
 
 var app = builder.Build();
+
+// Apply CORS middleware early in the pipeline
 app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline

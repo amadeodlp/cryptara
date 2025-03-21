@@ -86,29 +86,63 @@ public class UserService : IUserService
             return false;
         }
 
-        var newUser = new User
+        try 
         {
-            Name = name,
-            Email = email,
-            PasswordHash = HashPassword(password),
-            CreatedAt = DateTime.UtcNow
-        };
+            // Use a transaction to ensure atomicity
+            using var transaction = await _dbContext.Database.BeginTransactionAsync();
 
-        _dbContext.Users.Add(newUser);
-        
-        // Create a wallet for the new user
-        var wallet = new Wallet
+            // Create the user
+            var newUser = new User
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = name,
+                Email = email,
+                PasswordHash = HashPassword(password),
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.Users.Add(newUser);
+            await _dbContext.SaveChangesAsync(); // Save to generate the ID
+            
+            // Create a wallet for the new user
+            var wallet = new Wallet
+            {
+                Id = Guid.NewGuid().ToString(),
+                UserId = newUser.Id,
+                IsConnected = false,
+                CreatedAt = DateTime.UtcNow
+            };
+            
+            _dbContext.Wallets.Add(wallet);
+            await _dbContext.SaveChangesAsync();
+
+            // Get predefined tokens
+            var tokens = await _dbContext.Tokens.Where(t => t.IsActive).ToListAsync();
+
+            // Add token balances with zero balance
+            foreach (var token in tokens)
+            {
+                var tokenBalance = new TokenBalance
+                {
+                    WalletId = wallet.Id,
+                    TokenId = token.Id,
+                    Balance = 0,
+                    LastUpdatedAt = DateTime.UtcNow
+                };
+                
+                _dbContext.TokenBalances.Add(tokenBalance);
+            }
+            
+            await _dbContext.SaveChangesAsync();
+            await transaction.CommitAsync();
+            
+            return true;
+        }
+        catch (Exception ex)
         {
-            UserId = newUser.Id,
-            IsConnected = false,
-            CreatedAt = DateTime.UtcNow
-        };
-        
-        _dbContext.Wallets.Add(wallet);
-        
-        await _dbContext.SaveChangesAsync();
-        
-        return true;
+            _logger.LogError(ex, "Error registering user {Email}", email);
+            return false;
+        }
     }
 
     public async Task<bool> UpdateUserAsync(User user)
