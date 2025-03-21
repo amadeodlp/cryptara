@@ -257,9 +257,17 @@ using (var scope = app.Services.CreateScope())
         }
 
         logger.LogInformation("Applying database migrations...");
-        // Apply any pending migrations - safer than EnsureCreated() for production
-        dbContext.Database.Migrate();
-        logger.LogInformation("Database migrations applied successfully");
+        try {
+            // Apply any pending migrations - safer than EnsureCreated() for production
+            dbContext.Database.Migrate();
+            logger.LogInformation("Database migrations applied successfully");
+        }
+        catch (Exception migrationEx) {
+            // If migration fails, try to ensure schema exists at minimum
+            logger.LogWarning(migrationEx, "Migration failed, attempting to ensure database exists");
+            dbContext.Database.EnsureCreated();
+            logger.LogInformation("Database creation completed");
+        }
         
         // Fix schema issues if needed
         if (!app.Environment.IsDevelopment())

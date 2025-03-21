@@ -239,7 +239,7 @@ public class AuthController : ControllerBase
                     // Create test user with this ID format
                     var user = new FinanceSimplified.Models.User
                     {
-                        Id = format.Value,
+                        // No need to specify ID, it will be auto-generated
                         Name = "Test User",
                         Email = testEmail,
                         PasswordHash = "TestHash",
@@ -253,7 +253,8 @@ public class AuthController : ControllerBase
                     // If we get here, insertion succeeded
                     results.Add(new {
                         FormatName = format.Key,
-                        Id = format.Value,
+                        RequestedId = format.Value,
+                        ActualId = user.Id,
                         Success = true,
                         Message = "User created successfully"
                     });

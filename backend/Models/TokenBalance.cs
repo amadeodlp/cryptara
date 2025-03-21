@@ -2,8 +2,8 @@ namespace FinanceSimplified.Models;
 
 public class TokenBalance
 {
-    public string WalletId { get; set; } = string.Empty;
-    public string TokenId { get; set; } = string.Empty;
+    public int WalletId { get; set; }
+    public int TokenId { get; set; }
     public decimal Balance { get; set; }
     public DateTime LastUpdatedAt { get; set; } = DateTime.UtcNow;
 
@@ -14,7 +14,7 @@ public class TokenBalance
 
 public class TokenBalanceDto
 {
-    public string TokenId { get; set; } = string.Empty;
+    public int TokenId { get; set; }
     public string Symbol { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public decimal Balance { get; set; }

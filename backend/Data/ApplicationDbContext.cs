@@ -98,7 +98,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>().HasData(
             new User
             {
-                Id = "1",
+                Id = 1,
                 Name = "Test User",
                 Email = "test@example.com",
                 PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=", // "password123" hashed with SHA-256
@@ -109,7 +109,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Token>().HasData(
             new Token
             {
-                Id = "1",
+                Id = 1,
                 Symbol = "ETH",
                 Name = "Ethereum",
                 Decimals = 18,
@@ -118,7 +118,7 @@ public class ApplicationDbContext : DbContext
             },
             new Token
             {
-                Id = "2",
+                Id = 2,
                 Symbol = "FIN",
                 Name = "Finance Token",
                 Decimals = 18,

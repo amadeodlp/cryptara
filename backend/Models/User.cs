@@ -2,8 +2,8 @@ namespace FinanceSimplified.Models;
 
 public class User
 {
-    // Don't set a default value - let the database generate the ID
-    public string Id { get; set; } = string.Empty;
+    // Change ID type to int for MySQL auto-increment compatibility
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;
