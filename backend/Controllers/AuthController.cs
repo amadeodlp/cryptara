@@ -173,11 +173,11 @@ public class AuthController : ControllerBase
             var userTableInfo = new List<Dictionary<string, object>>();
             
             // Get table structure in MySQL
-            var connection = dbContext.Database.GetDbConnection();
+            var dbConnection = dbContext.Database.GetDbConnection();
             try {
-                await connection.OpenAsync();
+                await dbConnection.OpenAsync();
                 
-                using var command = connection.CreateCommand();
+                using var command = dbConnection.CreateCommand();
                 command.CommandText = "DESCRIBE users";
                 
                 using var reader = await command.ExecuteReaderAsync();
@@ -192,8 +192,8 @@ public class AuthController : ControllerBase
                 }
             }
             finally {
-                if (connection.State == System.Data.ConnectionState.Open)
-                    await connection.CloseAsync();
+                if (dbConnection.State == System.Data.ConnectionState.Open)
+                    await dbConnection.CloseAsync();
             }
             
             return Ok(new { 

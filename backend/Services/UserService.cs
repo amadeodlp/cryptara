@@ -103,7 +103,7 @@ public class UserService : IUserService
                 CreatedAt = DateTime.UtcNow
             };
 
-            _logger.LogInformation("Adding user to database with ID: {UserId}", userId);
+            _logger.LogInformation("Adding user to database");
             _dbContext.Users.Add(newUser);
             
             try {
