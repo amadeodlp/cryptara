@@ -2,7 +2,7 @@ namespace FinanceSimplified.Models;
 
 public class Token
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string Id { get; set; } = Guid.NewGuid().ToString("N").Substring(0, 20); // Shorter ID format without hyphens
     public string Symbol { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public int Decimals { get; set; } = 18;

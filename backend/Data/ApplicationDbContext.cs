@@ -27,7 +27,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<User>().ToTable("users");
         modelBuilder.Entity<User>()
             .Property(u => u.Id)
-            .HasColumnType("varchar(255)")
+            .HasColumnType("varchar(20)")
             .ValueGeneratedNever()
             .HasColumnName("id");
         modelBuilder.Entity<User>().HasKey(u => u.Id);
@@ -35,7 +35,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Transaction>().ToTable("transactions");
         modelBuilder.Entity<Transaction>()
             .Property(t => t.Id)
-            .HasColumnType("varchar(255)")
+            .HasColumnType("varchar(20)")
             .ValueGeneratedNever()
             .HasColumnName("id");
         modelBuilder.Entity<Transaction>().HasKey(t => t.Id);
@@ -43,7 +43,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Wallet>().ToTable("wallets");
         modelBuilder.Entity<Wallet>()
             .Property(w => w.Id)
-            .HasColumnType("varchar(255)")
+            .HasColumnType("varchar(20)")
             .ValueGeneratedNever()
             .HasColumnName("id");
         modelBuilder.Entity<Wallet>().HasKey(w => w.Id);
@@ -51,7 +51,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Token>().ToTable("tokens");
         modelBuilder.Entity<Token>()
             .Property(t => t.Id)
-            .HasColumnType("varchar(255)")
+            .HasColumnType("varchar(20)")
             .ValueGeneratedNever()
             .HasColumnName("id");
         modelBuilder.Entity<Token>().HasKey(t => t.Id);
@@ -60,7 +60,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<StakingPosition>().ToTable("stakingpositions");
         modelBuilder.Entity<StakingPosition>()
             .Property(sp => sp.Id)
-            .HasColumnType("varchar(255)")
+            .HasColumnType("varchar(20)")
             .ValueGeneratedNever()
             .HasColumnName("id");
         modelBuilder.Entity<StakingPosition>().HasKey(sp => sp.Id);
@@ -70,7 +70,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Notification>().ToTable("notifications");
         modelBuilder.Entity<Notification>()
             .Property(n => n.Id)
-            .HasColumnType("varchar(255)")
+            .HasColumnType("varchar(20)")
             .ValueGeneratedNever()
             .HasColumnName("id");
         modelBuilder.Entity<Notification>().HasKey(n => n.Id);

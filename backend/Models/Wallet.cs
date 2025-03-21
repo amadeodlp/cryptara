@@ -2,7 +2,7 @@ namespace FinanceSimplified.Models;
 
 public class Wallet
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
+    public string Id { get; set; } = Guid.NewGuid().ToString("N").Substring(0, 20); // Shorter ID format without hyphens
     public string UserId { get; set; } = string.Empty;
     public string Address { get; set; } = string.Empty;
     public bool IsConnected { get; set; }
