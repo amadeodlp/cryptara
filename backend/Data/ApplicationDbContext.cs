@@ -23,6 +23,17 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Map entity classes to lowercase table names
+        modelBuilder.Entity<User>().ToTable("users");
+        modelBuilder.Entity<Transaction>().ToTable("transactions");
+        modelBuilder.Entity<Wallet>().ToTable("wallets");
+        modelBuilder.Entity<Token>().ToTable("tokens");
+        modelBuilder.Entity<TokenBalance>().ToTable("tokenbalances");
+        modelBuilder.Entity<StakingPosition>().ToTable("stakingpositions");
+        modelBuilder.Entity<StakingApyRate>().ToTable("stakingapyrates");
+        modelBuilder.Entity<UserWallet>().ToTable("userwallets");
+        modelBuilder.Entity<Notification>().ToTable("notifications");
+
         // Configure relationships
         modelBuilder.Entity<User>()
             .HasOne(u => u.Wallet)
