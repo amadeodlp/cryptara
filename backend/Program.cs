@@ -8,6 +8,14 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure listening port for Railway deployment
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+    Console.WriteLine($"Configured to listen on port {port}");
+}
+
 // Force load environment variables - moved to top to ensure they're available for DB connection
 builder.Configuration.AddEnvironmentVariables();
 
@@ -234,79 +242,68 @@ else
 }
 
 // Initialize the database - do this in both development and production
-using (var scope = app.Services.CreateScope())
+try 
 {
-    var services = scope.ServiceProvider;
-    var logger = services.GetRequiredService<ILogger<Program>>();
-    var dbContext = services.GetRequiredService<ApplicationDbContext>();
-    
-    try
+    using (var scope = app.Services.CreateScope())
     {
-        // First, test the connection
-        logger.LogInformation("Testing database connection...");
-        bool canConnect = false;
+        var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        var dbContext = services.GetRequiredService<ApplicationDbContext>();
+    
         try
         {
+            // First, test the connection
+            logger.LogInformation("Testing database connection...");
+            bool canConnect = false;
+            try
+            {
             canConnect = dbContext.Database.CanConnect();
             logger.LogInformation($"Database connection test result: {(canConnect ? "SUCCESS" : "FAILED")}");
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Database connection test failed with exception");
-            // Continue with migration attempt even if connection test fails
-        }
-
-        logger.LogInformation("Applying database migrations...");
-        try {
-            // Apply any pending migrations - safer than EnsureCreated() for production
-            dbContext.Database.Migrate();
-            logger.LogInformation("Database migrations applied successfully");
-        }
-        catch (Exception migrationEx) {
-            // If migration fails, try to ensure schema exists at minimum
-            logger.LogWarning(migrationEx, "Migration failed, attempting to ensure database exists");
-            dbContext.Database.EnsureCreated();
-            logger.LogInformation("Database creation completed");
-        }
-        
-        // Fix schema issues if needed
-        if (!app.Environment.IsDevelopment())
-        {
-            logger.LogInformation("Railway deployment detected. Checking database schema...");
-            try 
-            {
-                // First, check if we're running on MySQL or SQLite
-                if (dbContext.Database.GetDbConnection().GetType().Name.Contains("MySql"))
-                {
-                    // Use raw SQL to check if the id column is int and change it to varchar if needed
-                    var connection = dbContext.Database.GetDbConnection();
-                    await connection.OpenAsync();
-                    
-                    var command = connection.CreateCommand();
-                    command.CommandText = "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS " +
-                                         "WHERE TABLE_NAME = 'users' AND COLUMN_NAME = 'id'";
-                                     
-                    var idDataType = (await command.ExecuteScalarAsync())?.ToString()?.ToLower();
-                    
-                    // Log what we found
-                    logger.LogInformation("Users table id column is of type: {IdType}", idDataType ?? "unknown");
-                    
-                    // We adapted our code to use auto-generated IDs, so we don't need to change the schema
-                    await connection.CloseAsync();
-                }
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error checking database schema");
-                // Don't fail startup if schema check fails
+                logger.LogError(ex, "Database connection test failed with exception");
+                // Continue with migration attempt even if connection test fails
             }
-        }
+
+            logger.LogInformation("Applying database migrations...");
+            try {
+                // Apply any pending migrations - safer than EnsureCreated() for production
+                dbContext.Database.Migrate();
+                logger.LogInformation("Database migrations applied successfully");
+            }
+            catch (Exception migrationEx) {
+                // If migration fails, try to ensure schema exists at minimum
+                logger.LogWarning(migrationEx, "Migration failed, attempting to ensure database exists");
+                dbContext.Database.EnsureCreated();
+                logger.LogInformation("Database creation completed");
+            }
+        
+            // Fix schema issues if needed
+            if (!app.Environment.IsDevelopment())
+            {
+                logger.LogInformation("Railway deployment detected. Checking database schema...");
+                try 
+                {
+                    // First, check if we're running on MySQL or SQLite
+                    if (dbContext.Database.GetDbConnection().GetType().Name.Contains("MySql"))
+                    {
+                        // Just log the connection type - don't attempt any schema modifications
+                        logger.LogInformation("Using MySQL database connection");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error checking database schema");
+                    // Don't fail startup if schema check fails
+                }
+            }
     }
-    catch (Exception ex)
-    {
-        logger.LogError(ex, "An error occurred while migrating the database");
-        throw; // Rethrow to prevent app startup if db migration fails
-    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Critical error during database initialization: {ex.Message}");
+    // Continue execution without database to allow the application to start
 }
 
 // Print environment variables

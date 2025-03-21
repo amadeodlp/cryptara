@@ -1,18 +1,22 @@
-# Use the .NET 8 SDK as the build environment
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build-env
-WORKDIR /app
+# Build stage
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+WORKDIR /src
 
-# Copy everything and restore dependencies
-COPY . ./
+# Copy csproj and restore dependencies
+COPY *.csproj ./
 RUN dotnet restore
 
-# Build and publish the app
+# Copy everything else and build
+COPY . ./
 RUN dotnet publish -c Release -o /app/publish
 
-# Use the ASP.NET Core runtime image
-FROM mcr.microsoft.com/dotnet/aspnet:8.0
+# Runtime stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-COPY --from=build-env /app/publish .
+COPY --from=build /app/publish .
 
-# Set the entrypoint
-CMD ["dotnet", "COSMOS.dll"]
+# Set environment variables
+ENV ASPNETCORE_URLS=http://+:${PORT:-5000}
+
+# Run the app
+ENTRYPOINT ["dotnet", "COSMOS.dll"]

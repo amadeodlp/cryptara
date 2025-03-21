@@ -262,8 +262,19 @@ public class AuthController : ControllerBase
                     // Conditionally set ID if provided
                     if (format.Value != null)
                     {
-                        // Use reflection to set the ID if a value was provided
-                        typeof(FinanceSimplified.Models.User).GetProperty("Id").SetValue(user, format.Value);
+                        try 
+                        {
+                            // Use reflection to set the ID if a value was provided
+                            var idProperty = typeof(FinanceSimplified.Models.User).GetProperty("Id");
+                            if (idProperty != null) 
+                            {
+                                idProperty.SetValue(user, Convert.ChangeType(format.Value, idProperty.PropertyType));
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error setting ID via reflection");
+                        }
                     }
                     
                     // Add to db and save
@@ -288,9 +299,10 @@ public class AuthController : ControllerBase
                     // Record the failure
                     results.Add(new {
                         FormatName = format.Key,
-                        Id = format.Value,
+                        RequestedId = format.Value,
                         Success = false,
-                        Error = ex.ToString()
+                        Error = ex.Message, // Simpler error message
+                        ErrorType = ex.GetType().Name // Add the error type for debugging
                     });
                 }
             }
