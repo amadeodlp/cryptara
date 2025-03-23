@@ -114,7 +114,7 @@ const Login: React.FC = () => {
       <div className="login">
         <div className="login__container">
           <div className="login__logo-container">
-            <h1 className="login__logo">Finance<span className="text-gradient">Simplified</span></h1>
+            <h1 className="login__logo"><span className="text-gradient">Cryptara</span></h1>
             <p className="login__tagline">Secure. Efficient. Decentralized.</p>
           </div>
           

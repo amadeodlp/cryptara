@@ -1,8 +1,8 @@
 {
-    "name": "cosmos",
+    "name": "cryptara",
     "version": "0.1.0",
     "private": true,
-    "homepage": "https://amadeodlp.github.io/finance-simplified/",
+    "homepage": "https://amadeodlp.github.io/cryptara/",
     "dependencies": {
         "@reduxjs/toolkit": "^2.0.1",
         "axios": "^1.6.2",

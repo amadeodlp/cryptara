@@ -37,16 +37,14 @@ const App: React.FC = () => {
       
       {/* Routes accessible with or without authentication */}
       <Route element={<MainLayout />}>
-        <Route path="/" element={<Home />} />
+        <Route path="/" element={<Navigate to="/dashboard" />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/exchange" element={<Exchange />} />
         <Route path="/staking" element={<Staking />} />
         <Route path="/portfolio" element={isAuthenticated ? <Portfolio /> : <Navigate to="/login" />} />
         <Route path="/transactions" element={isAuthenticated ? <Transactions /> : <Navigate to="/login" />} />
       </Route>
-      
-      {/* Fallback route */}
-      <Route path="*" element={<Navigate to="/" />} />
+      <Route path="*" element={<Navigate to="/dashboard" />} />
     </Routes>
     </>
   );

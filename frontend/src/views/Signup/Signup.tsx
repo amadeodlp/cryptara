@@ -136,14 +136,14 @@ const Signup: React.FC = () => {
       <div className="signup">
         <div className="signup__container">
           <div className="signup__logo-container">
-            <h1 className="signup__logo">Finance<span className="text-gradient">Simplified</span></h1>
+            <h1 className="signup__logo"><span className="text-gradient">Cryptara</span></h1>
             <p className="signup__tagline">Secure. Efficient. Decentralized.</p>
           </div>
           
           <div className="signup__card glass-card">
             <div className="signup__header">
               <h2 className="signup__title">Create Your Account</h2>
-              <p className="signup__subtitle">Join us for a simplified financial experience</p>
+              <p className="signup__subtitle">Join us for a modern crypto trading experience</p>
             </div>
             
             <form className="signup__form" onSubmit={handleSubmit}>
