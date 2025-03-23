@@ -29,7 +29,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     else
     {
         // For Railway deployment - handle multiple connection string formats
-        string connectionString = null;
+        string? connectionString = null;
         
         // 1. Try to use MYSQL_URL if it's in standard format
         var mysqlUrl = Environment.GetEnvironmentVariable("MYSQL_URL");
@@ -200,8 +200,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "DefaultIssuer",
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "DefaultAudience",
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "temporaryDevelopmentKey12345"))
         };
