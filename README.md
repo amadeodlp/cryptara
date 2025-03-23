@@ -1,42 +1,42 @@
-# COSMOS
+# Cryptara
 
-> _"The cosmos is all that is or ever was or ever will be. Our contemplations of the cosmos stir us — there is a tingling in the spine, a catch in the voice, a faint sensation, as if a distant memory, of falling from a great height. We know we are approaching the greatest of mysteries."_ 
+> _"In the vast digital frontier, we navigate the infinite possibilities of tomorrow's financial landscape."_
 
-## A Boundless Financial Universe
+## The Boundless Horizon of Decentralized Finance
 
-COSMOS is a revolutionary decentralized finance platform that bridges the celestial wonders of the universe with cutting-edge blockchain technology. Just as the cosmos represents the grand interconnected tapestry of celestial bodies, our platform connects disparate financial ecosystems into one elegant, unified experience.
+Cryptara is a cutting-edge cryptocurrency trading and management platform that empowers users to explore the limitless potential of blockchain technology. Just as the digital universe continues to expand infinitely, Cryptara provides a gateway to the boundless opportunities within the evolving crypto ecosystem.
 
-## Features of the Financial Cosmos
+## Features of the Cryptara Experience
 
-### 🌌 Universal Dashboard
-- Comprehensive overview of your entire crypto portfolio
-- Real-time market data visualization with cosmic-inspired charts
-- Personalized analytics and insights tailored to your financial journey
+### 🚀 Comprehensive Dashboard
+- Intuitive overview of your entire crypto portfolio
+- Real-time market data with advanced visualization tools
+- Personalized insights and analytics tailored to your trading journey
 
-### 🌠 Stellar Wallet
-- Seamless integration with MetaMask and other popular wallets
-- Secure storage and management of multiple cryptocurrencies
-- Effortless transfers between different blockchain networks
+### 🔐 Secure Wallet Integration
+- Seamless connection with MetaMask and other leading wallets
+- Multi-currency support for diverse crypto assets
+- Frictionless transactions across blockchain networks
 
-### 🪐 Orbital Exchange
-- Powerful token swap capabilities across multiple DEXs
-- Advanced trading tools with minimal slippage
-- Intelligent routing to find the most efficient trade paths
+### 💱 Advanced Exchange
+- Powerful token swap functionality with competitive rates
+- Intelligent routing to maximize trading efficiency
+- Minimal slippage protection for optimal execution
 
-### 🌟 Gravity Pools (Staking)
-- Multiple staking options with variable APYs
-- Automated compound interest mechanics
-- Flexible locking periods to maximize your returns
+### 📈 Staking & Yield
+- Diverse staking options with attractive returns
+- Flexible locking periods to match your investment strategy
+- Automated compounding to maximize your earnings
 
-### 🛰️ Cosmic Portfolio
-- Beautiful visualizations of asset allocations and performance
-- Historical performance tracking and projections
-- Export capabilities for tax and record-keeping
+### 📊 Dynamic Portfolio
+- Comprehensive asset allocation and performance tracking
+- Historical data analysis and trend visualization
+- Customizable reporting for financial planning
 
-### ☄️ Nebula Transactions
-- Complete history of all on-chain activities
-- Detailed gas analytics and optimization suggestions
-- Transaction categorization for seamless financial management
+### 📝 Transaction History
+- Complete record of all blockchain activities
+- Detailed gas analytics and optimization
+- Smart categorization for financial management
 
 ## Technology Stack
 
@@ -46,11 +46,11 @@ COSMOS is a revolutionary decentralized finance platform that bridges the celest
 
 ## Architecture
 
-COSMOS is built on a three-layered architecture that mirrors the structure of the universe itself:
+Cryptara is built on a three-tiered architecture designed for reliability, scalability, and security:
 
-1. **Galactic Core (Smart Contracts)** - The fundamental gravitational center that governs all interactions through immutable code on the Ethereum blockchain
-2. **Stellar Network (Backend API)** - The interconnected system that processes, validates, and delivers data across the application
-3. **Cosmic Interface (Frontend)** - The observable universe through which users can navigate and interact with the entire COSMOS
+1. **Foundation Layer (Smart Contracts)** - The immutable backbone that ensures trustless transactions and interactions on the blockchain
+2. **Service Layer (Backend API)** - The robust middleware that processes, validates, and orchestrates data across the platform
+3. **Experience Layer (Frontend)** - The intuitive interface through which users explore and interact with the vast digital ecosystem
 
 ## Getting Started
 
@@ -58,14 +58,14 @@ COSMOS is built on a three-layered architecture that mirrors the structure of th
 - Node.js (v16+) and npm
 - .NET 8 SDK
 - MetaMask or compatible Web3 wallet
-- Basic understanding of cosmic wonder
+- Curiosity for financial innovation
 
 ### Installation
 
 1. Clone this repository
 ```bash
-git clone https://github.com/yourusername/cosmos.git
-cd cosmos
+git clone https://github.com/amadeodlp/finance-simplified.git
+cd finance-simplified
 ```
 
 2. Install dependencies
@@ -85,7 +85,7 @@ npm install
 
 3. Configure environment variables (see ENVIRONMENT_SETUP.md)
 
-4. Launch the COSMOS
+4. Launch Cryptara
 ```bash
 # Start frontend development server
 cd frontend
@@ -97,21 +97,23 @@ dotnet run
 
 # Deploy contracts (optional, testnet only)
 cd ../smart-contracts
-npx hardhat run scripts/deploy.js --network goerli
+npx hardhat run scripts/deploy.js --network sepolia
 ```
 
-## Future Expansion of the Universe
+## Expanding the Horizon
 
-- Multi-chain support beyond Ethereum
-- Decentralized governance through COSMOS DAO
-- Advanced DeFi instruments (lending, borrowing, derivatives)
-- Mobile applications for iOS and Android
-- AI-powered financial advisors
+Cryptara's vision extends to these upcoming innovations:
 
-## Join the Cosmic Community
+- Cross-chain asset management and bridging capabilities
+- Decentralized governance through the Cryptara DAO
+- Advanced trading tools with AI-powered market analysis
+- Mobile applications for on-the-go crypto management
+- Integration with emerging DeFi protocols and services
 
-COSMOS is more than just a DeFi application—it's a journey through the financial universe. We invite you to explore the vast possibilities that await when traditional finance meets the infinite potential of blockchain technology.
+## Join the Journey
+
+Cryptara is more than a trading platform—it's your portal to the infinite landscape of digital assets. We invite you to explore the vast possibilities of blockchain technology with us as we continue to push the boundaries of what's possible in decentralized finance.
 
 ---
 
-*"Somewhere, something incredible is waiting to be known."* — Carl Sagan
+*"The only limit to our realization of tomorrow will be our doubts of today."* — Franklin D. Roosevelt

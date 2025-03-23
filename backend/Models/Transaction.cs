@@ -6,17 +6,17 @@ namespace FinanceSimplified.Models;
 public class Transaction
 {
     [Key]
-    public string Id { get; set; } = string.Empty;
+    public int Id { get; set; }
     
-    public string UserId { get; set; } = string.Empty;
+    public int UserId { get; set; }
     
     public TransactionType Type { get; set; }
     
     public TransactionStatus Status { get; set; }
     
-    public string? TokenFromId { get; set; }
+    public int? TokenFromId { get; set; }
     
-    public string? TokenToId { get; set; }
+    public int? TokenToId { get; set; }
     
     [Column(TypeName = "decimal(18,8)")]
     public decimal? AmountFrom { get; set; }

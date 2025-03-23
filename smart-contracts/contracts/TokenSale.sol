@@ -10,7 +10,7 @@ contract TokenSale is Ownable {
     
     event TokensPurchased(address buyer, uint256 ethAmount, uint256 tokenAmount);
     
-    constructor(address _tokenAddress, uint256 _initialPrice) Ownable(msg.sender) {
+    constructor(address _tokenAddress, uint256 _initialPrice) {
         fitToken = IERC20(_tokenAddress);
         tokenPrice = _initialPrice;
     }

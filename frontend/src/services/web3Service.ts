@@ -37,7 +37,7 @@ const stakingAbi = [
 // ABI for the token sale contract
 const tokenSaleAbi = [
   // Read-only functions
-  "function fitToken() view returns (address)",
+  "function craToken() view returns (address)",
   "function tokenPrice() view returns (uint256)",
   // Authenticated functions
   "function buyTokens() payable",

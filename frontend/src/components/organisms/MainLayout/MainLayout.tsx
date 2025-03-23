@@ -37,7 +37,7 @@ const MainLayout: React.FC = () => {
       <header className={`main-layout__header ${scrolled ? 'scrolled' : ''}`}>
         <div className="main-layout__header-container">
           <div className="main-layout__logo">
-            <span className="logo-text"><span className="text-gradient">COSMOS</span></span>
+            <span className="logo-text"><span className="text-gradient">Cryptara</span></span>
           </div>
           
           {/* Mobile menu toggle */}
@@ -133,7 +133,7 @@ const MainLayout: React.FC = () => {
       <footer className="main-layout__footer">
         <div className="main-layout__footer-container">
           <div className="footer-logo">
-            <span className="logo-text"><span className="text-gradient">COSMOS</span></span>
+            <span className="logo-text"><span className="text-gradient">Cryptara</span></span>
           </div>
           <div className="footer-links">
             <div className="footer-links-column">
@@ -163,7 +163,7 @@ const MainLayout: React.FC = () => {
           </div>
           <div className="footer-bottom">
             <p className="main-layout__footer-text">
-              &copy; {new Date().getFullYear()} COSMOS. All rights reserved.
+              &copy; {new Date().getFullYear()} Cryptara. All rights reserved.
             </p>
           </div>
         </div>

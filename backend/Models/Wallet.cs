@@ -2,8 +2,8 @@ namespace FinanceSimplified.Models;
 
 public class Wallet
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
-    public string UserId { get; set; } = string.Empty;
+    public int Id { get; set; }
+    public int UserId { get; set; }
     public string Address { get; set; } = string.Empty;
     public bool IsConnected { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

@@ -71,11 +71,11 @@ const Exchange: React.FC = () => {
           };
         } catch (err) {
           console.log('FIT token not available yet:', err);
-          // Use a placeholder FIT token if contract not deployed
+          // Use a placeholder CRA token if contract not deployed
           fitTokenData = {
-            id: 'fit',
-            name: 'Finance Token',
-            symbol: 'FIT',
+            id: 'cra',
+            name: 'Cryptara Token',
+            symbol: 'CRA',
             logo: '🪙',
             balance: '0',
             price: '0.0001',
@@ -140,9 +140,9 @@ const Exchange: React.FC = () => {
           price: '2,850.45'
         },
         {
-          id: 'fit',
-          name: 'Finance Token',
-          symbol: 'FIT',
+          id: 'cra',
+          name: 'Cryptara Token',
+          symbol: 'CRA',
           logo: '🪙',
           balance: '1,350.00',
           price: '0.0001'
@@ -294,8 +294,8 @@ const Exchange: React.FC = () => {
     setSwapSuccess(false);
     
     try {
-      // Check if this is a direct purchase of FIT token with ETH
-      if (fromToken.id === 'eth' && toToken.id === 'fit') {
+      // Check if this is a direct purchase of CRA token with ETH
+      if (fromToken.id === 'eth' && toToken.id === 'cra') {
         // Call buyTokens for ETH -> FIT transactions
         await buyTokens(fromAmount);
       } else {
@@ -316,7 +316,7 @@ const Exchange: React.FC = () => {
         fromToken.balance = ethers.formatEther(ethBalance);
       }
       
-      if (toToken.id === 'fit') {
+      if (toToken.id === 'cra') {
         const contract = await getTokenContract();
         const balance = await contract.balanceOf(address!);
         toToken.balance = ethers.formatEther(balance);
@@ -638,8 +638,8 @@ const Exchange: React.FC = () => {
               <div className="market-table-row">
                 <div className="market-cell name">
                   <span className="crypto-logo">🪙</span>
-                  <span className="crypto-name">Finance Token</span>
-                  <span className="crypto-symbol">FIN</span>
+                  <span className="crypto-name">Cryptara Token</span>
+                  <span className="crypto-symbol">CRA</span>
                 </div>
                 <div className="market-cell price">$1.663</div>
                 <div className="market-cell change positive">+12.5%</div>

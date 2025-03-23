@@ -20,15 +20,15 @@ public class StakingService : IStakingService
         _logger = logger;
     }
 
-    public async Task<List<StakingPosition>> GetUserStakingPositionsAsync(string userId)
+    public async Task<List<StakingPosition>> GetUserStakingPositionsAsync(int userId)
     {
         return await _context.StakingPositions
-            .Where(p => p.UserId == userId)
+            .Where(p => p.UserId == userId) // No need to convert to string here as UserId in StakingPosition is an int
             .OrderByDescending(p => p.StakedAt)
             .ToListAsync();
     }
 
-    public async Task<StakingResult> StakeTokensAsync(string userId, string tokenSymbol, decimal amount, int duration)
+    public async Task<StakingResult> StakeTokensAsync(int userId, string tokenSymbol, decimal amount, int duration)
     {
         if (amount <= 0)
         {
@@ -51,7 +51,7 @@ public class StakingService : IStakingService
 
         // Check if user has enough balance
         var userWallet = await _context.UserWallets
-            .FirstOrDefaultAsync(w => w.UserId == userId && w.TokenSymbol == tokenSymbol);
+            .FirstOrDefaultAsync(w => w.UserId == userId.ToString() && w.TokenSymbol == tokenSymbol);
 
         if (userWallet == null || userWallet.Balance < amount)
         {
@@ -59,10 +59,8 @@ public class StakingService : IStakingService
         }
 
         // Create staking position
-        var stakingId = Guid.NewGuid().ToString();
         var stakingPosition = new StakingPosition
         {
-            Id = stakingId,
             UserId = userId,
             TokenSymbol = tokenSymbol,
             Amount = amount,
@@ -85,7 +83,7 @@ public class StakingService : IStakingService
 
             // Send notification
             await _notificationService.SendNotificationAsync(
-                userId, 
+                userId.ToString(), 
                 "Staking Successful", 
                 $"You have successfully staked {amount} {tokenSymbol} for {duration} days with {apyRate.APY}% APY."
             );
@@ -95,7 +93,7 @@ public class StakingService : IStakingService
             return new StakingResult
             {
                 Success = true,
-                StakingId = stakingId,
+                StakingId = stakingPosition.Id,
                 Message = $"Successfully staked {amount} {tokenSymbol}",
                 StakingPosition = stakingPosition
             };
@@ -108,7 +106,7 @@ public class StakingService : IStakingService
         }
     }
 
-    public async Task<StakingResult> UnstakeTokensAsync(string userId, string stakingId)
+    public async Task<StakingResult> UnstakeTokensAsync(int userId, int stakingId)
     {
         var stakingPosition = await _context.StakingPositions
             .FirstOrDefaultAsync(p => p.Id == stakingId && p.UserId == userId);
@@ -118,6 +116,7 @@ public class StakingService : IStakingService
             throw new ArgumentException("Staking position not found or does not belong to user.");
         }
 
+        // Fix Line 141: Convert enum to string before comparison
         if (stakingPosition.Status != StakingStatus.Active.ToString())
         {
             throw new InvalidOperationException("Cannot unstake a non-active staking position.");
@@ -140,13 +139,13 @@ public class StakingService : IStakingService
 
         // Update user wallet
         var userWallet = await _context.UserWallets
-            .FirstOrDefaultAsync(w => w.UserId == userId && w.TokenSymbol == stakingPosition.TokenSymbol);
+            .FirstOrDefaultAsync(w => w.UserId == userId.ToString() && w.TokenSymbol == stakingPosition.TokenSymbol);
 
         if (userWallet == null)
         {
             userWallet = new UserWallet
             {
-                UserId = userId,
+                UserId = userId.ToString(),
                 TokenSymbol = stakingPosition.TokenSymbol,
                 Balance = 0
             };
@@ -154,6 +153,7 @@ public class StakingService : IStakingService
         }
 
         userWallet.Balance += returnAmount;
+        // Fix line 147: Ensure enum is converted to string
         stakingPosition.Status = isEarlyUnstake ? StakingStatus.UnstakedEarly.ToString() : StakingStatus.Completed.ToString();
         stakingPosition.UnstakedAt = DateTime.UtcNow;
 
@@ -167,7 +167,6 @@ public class StakingService : IStakingService
             // Create transaction record
             var stakingTransaction = new Transaction
             {
-                Id = Guid.NewGuid().ToString(),
                 UserId = userId,
                 Type = TransactionType.Unstake,
                 TokenSymbol = stakingPosition.TokenSymbol,
@@ -186,7 +185,7 @@ public class StakingService : IStakingService
                 : $"Staking completed. You received {stakingPosition.Amount} {stakingPosition.TokenSymbol} plus {rewardAmount} in rewards.";
 
             await _notificationService.SendNotificationAsync(
-                userId,
+                userId.ToString(),
                 "Unstaking Completed",
                 notificationMessage
             );
@@ -214,7 +213,7 @@ public class StakingService : IStakingService
         }
     }
 
-    public async Task<StakingReward> GetStakingRewardsAsync(string userId, string stakingId)
+    public async Task<StakingReward> GetStakingRewardsAsync(int userId, int stakingId)
     {
         var stakingPosition = await _context.StakingPositions
             .FirstOrDefaultAsync(p => p.Id == stakingId && p.UserId == userId);
@@ -224,6 +223,7 @@ public class StakingService : IStakingService
             throw new ArgumentException("Staking position not found or does not belong to user.");
         }
 
+        // Fix Line 54: Convert enum to string before comparison
         if (stakingPosition.Status != StakingStatus.Active.ToString())
         {
             return new StakingReward

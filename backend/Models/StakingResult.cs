@@ -4,7 +4,7 @@ public class StakingResult
 {
     public bool Success { get; set; }
     
-    public string StakingId { get; set; } = string.Empty;
+    public int StakingId { get; set; }
     
     public string Message { get; set; } = string.Empty;
     

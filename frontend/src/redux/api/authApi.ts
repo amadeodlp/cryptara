@@ -26,10 +26,18 @@ interface LoginResponse {
   token: string;
 }
 
+// Get the API URL from environment variables
+let apiUrl = import.meta.env.VITE_API_URL || '';
+
+// Ensure the API URL starts with https:// if not already
+if (apiUrl && !apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+  apiUrl = `https://${apiUrl}`;
+}
+
 export const authApi = createApi({
   reducerPath: 'authApi',
   baseQuery: fetchBaseQuery({ 
-    baseUrl: '/api',
+    baseUrl: apiUrl, // Use the environment variable instead of relative path
     prepareHeaders: (headers, { getState }) => {
       // Add token to headers if available
       const token = (getState() as any).auth.token;

@@ -2,7 +2,8 @@ namespace FinanceSimplified.Models;
 
 public class User
 {
-    public string Id { get; set; } = Guid.NewGuid().ToString();
+    // Change ID type to int for MySQL auto-increment compatibility
+    public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string PasswordHash { get; set; } = string.Empty;

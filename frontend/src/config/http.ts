@@ -1,4 +1,7 @@
-import { API_CONFIG } from './contracts';
+// Access environment variables for API configuration
+const API_CONFIG = {
+  BASE_URL: '/api' // This will be proxied by Vite's dev server
+};
 
 export const baseConfig = {
   baseUrl: API_CONFIG.BASE_URL,

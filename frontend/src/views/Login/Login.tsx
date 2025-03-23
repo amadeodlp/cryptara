@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch } from 'react-redux';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { addNotification } from '@/redux/slices/notificationSlice';
 import { useLoginMutation } from '@/redux/api/authApi';
 import { login } from '@/redux/slices/authSlice';
 import Button from '@/components/atoms/Button';
@@ -9,6 +10,7 @@ import './styles.css';
 
 const Login: React.FC = () => {
   const dispatch = useDispatch();
+  const location = useLocation();
   const [loginUser, { isLoading }] = useLoginMutation();
   
   const [formData, setFormData] = useState({
@@ -36,6 +38,18 @@ const Login: React.FC = () => {
     
     return () => clearInterval(interval);
   }, []);
+  
+  // Check for signup redirect
+  useEffect(() => {
+    // Check if user was redirected from signup page
+    if (location.state && location.state.fromSignup) {
+      dispatch(addNotification({
+        message: 'Account created successfully! Please log in.',
+        type: 'success',
+        duration: 5000
+      }));
+    }
+  }, [location, dispatch]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -100,7 +114,7 @@ const Login: React.FC = () => {
       <div className="login">
         <div className="login__container">
           <div className="login__logo-container">
-            <h1 className="login__logo">Finance<span className="text-gradient">Simplified</span></h1>
+            <h1 className="login__logo"><span className="text-gradient">Cryptara</span></h1>
             <p className="login__tagline">Secure. Efficient. Decentralized.</p>
           </div>
           

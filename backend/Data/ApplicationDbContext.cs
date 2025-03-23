@@ -23,6 +23,52 @@ public class ApplicationDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Map entity classes to lowercase table names with explicit ID configuration
+        modelBuilder.Entity<User>().ToTable("users");
+        modelBuilder.Entity<User>()
+            .Property(u => u.Id)
+            .ValueGeneratedOnAdd()
+            .HasColumnName("id");
+        modelBuilder.Entity<User>().HasKey(u => u.Id);
+        modelBuilder.Entity<User>().Ignore(u => u.LastLoginAt);
+        modelBuilder.Entity<Transaction>().ToTable("transactions");
+        modelBuilder.Entity<Transaction>()
+            .Property(t => t.Id)
+            .ValueGeneratedOnAdd()
+            .HasColumnName("id");
+        modelBuilder.Entity<Transaction>().HasKey(t => t.Id);
+        
+        modelBuilder.Entity<Wallet>().ToTable("wallets");
+        modelBuilder.Entity<Wallet>()
+            .Property(w => w.Id)
+            .ValueGeneratedOnAdd()
+            .HasColumnName("id");
+        modelBuilder.Entity<Wallet>().HasKey(w => w.Id);
+        
+        modelBuilder.Entity<Token>().ToTable("tokens");
+        modelBuilder.Entity<Token>()
+            .Property(t => t.Id)
+            .ValueGeneratedOnAdd()
+            .HasColumnName("id");
+        modelBuilder.Entity<Token>().HasKey(t => t.Id);
+        modelBuilder.Entity<TokenBalance>().ToTable("tokenbalances");
+        
+        modelBuilder.Entity<StakingPosition>().ToTable("stakingpositions");
+        modelBuilder.Entity<StakingPosition>()
+            .Property(sp => sp.Id)
+            .ValueGeneratedOnAdd()
+            .HasColumnName("id");
+        modelBuilder.Entity<StakingPosition>().HasKey(sp => sp.Id);
+        modelBuilder.Entity<StakingApyRate>().ToTable("stakingapyrates");
+        modelBuilder.Entity<UserWallet>().ToTable("userwallets");
+        
+        modelBuilder.Entity<Notification>().ToTable("notifications");
+        modelBuilder.Entity<Notification>()
+            .Property(n => n.Id)
+            .ValueGeneratedOnAdd()
+            .HasColumnName("id");
+        modelBuilder.Entity<Notification>().HasKey(n => n.Id);
+
         // Configure relationships
         modelBuilder.Entity<User>()
             .HasOne(u => u.Wallet)
@@ -47,11 +93,12 @@ public class ApplicationDbContext : DbContext
             .WithMany(u => u.Transactions)
             .HasForeignKey(t => t.UserId);
 
-        // Seed data for development
+        // Seed data for development - only include this in development
+#if DEBUG
         modelBuilder.Entity<User>().HasData(
             new User
             {
-                Id = "1",
+                Id = 1,
                 Name = "Test User",
                 Email = "test@example.com",
                 PasswordHash = "jGl25bVBBBW96Qi9Te4V37Fnqchz/Eu4qB9vKrRIqRg=", // "password123" hashed with SHA-256
@@ -62,7 +109,7 @@ public class ApplicationDbContext : DbContext
         modelBuilder.Entity<Token>().HasData(
             new Token
             {
-                Id = "1",
+                Id = 1,
                 Symbol = "ETH",
                 Name = "Ethereum",
                 Decimals = 18,
@@ -71,7 +118,7 @@ public class ApplicationDbContext : DbContext
             },
             new Token
             {
-                Id = "2",
+                Id = 2,
                 Symbol = "FIN",
                 Name = "Finance Token",
                 Decimals = 18,
@@ -79,6 +126,7 @@ public class ApplicationDbContext : DbContext
                 IsActive = true
             }
         );
+#endif
 
         // Seed data for staking APY rates
         modelBuilder.Entity<StakingApyRate>().HasData(

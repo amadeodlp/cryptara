@@ -8,18 +8,146 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Configure listening port for Railway deployment
+var port = Environment.GetEnvironmentVariable("PORT");
+if (!string.IsNullOrEmpty(port))
+{
+    builder.WebHost.UseUrls($"http://0.0.0.0:{port}");
+    Console.WriteLine($"Configured to listen on port {port}");
+}
+
+// Force load environment variables - moved to top to ensure they're available for DB connection
+builder.Configuration.AddEnvironmentVariables();
+
 // Add database context
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
 {
     if (builder.Environment.IsDevelopment())
     {
-        // Use SQLite for development
         options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection") ?? "Data Source=finance.db");
     }
     else
     {
-        // Use SQL Server for production
-        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"));
+        // For Railway deployment - handle multiple connection string formats
+        string? connectionString = null;
+        
+        // 1. Try to use MYSQL_URL if it's in standard format
+        var mysqlUrl = Environment.GetEnvironmentVariable("MYSQL_URL");
+        if (!string.IsNullOrEmpty(mysqlUrl))
+        {
+            // Check if it's in standard connection string format
+            if (mysqlUrl.StartsWith("Server=") || mysqlUrl.StartsWith("server=") || 
+                mysqlUrl.StartsWith("Host=") || mysqlUrl.StartsWith("host="))
+            {
+                connectionString = mysqlUrl;
+                Console.WriteLine("Using MYSQL_URL environment variable (standard format)");
+            }
+            // Check if it's in URL format (mysql://)
+            else if (mysqlUrl.StartsWith("mysql://"))
+            {
+                try 
+                {
+                    // Parse the URL format to standard connection string
+                    // Example: mysql://user:pass@host:port/dbname
+                    var uri = new Uri(mysqlUrl);
+                    var userInfo = uri.UserInfo.Split(':');
+                    var user = userInfo[0];
+                    var password = userInfo.Length > 1 ? userInfo[1] : "";
+                    var host = uri.Host;
+                    var port = uri.Port > 0 ? uri.Port : 3306;
+                    var database = uri.AbsolutePath.TrimStart('/');
+                    
+                    connectionString = $"Server={host};Port={port};Database={database};" +
+                                      $"Uid={user};Pwd={password};AllowPublicKeyRetrieval=true;ConnectionTimeout=30;Pooling=true;";
+                    
+                    Console.WriteLine("Parsed connection string from MYSQL_URL (URI format)");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to parse MYSQL_URL as URI: {ex.Message}");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"MYSQL_URL is in unrecognized format: {mysqlUrl.Substring(0, Math.Min(10, mysqlUrl.Length))}...");
+            }
+        }
+        
+        // 2. If MYSQL_URL didn't work, try MYSQL_PUBLIC_URL
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            var mysqlPublicUrl = Environment.GetEnvironmentVariable("MYSQL_PUBLIC_URL");
+            if (!string.IsNullOrEmpty(mysqlPublicUrl) && mysqlPublicUrl.StartsWith("mysql://"))
+            {
+                try
+                {
+                    var uri = new Uri(mysqlPublicUrl);
+                    var userInfo = uri.UserInfo.Split(':');
+                    var user = userInfo[0];
+                    var password = userInfo.Length > 1 ? userInfo[1] : "";
+                    var host = uri.Host;
+                    var port = uri.Port > 0 ? uri.Port : 3306;
+                    var database = uri.AbsolutePath.TrimStart('/');
+                
+                    connectionString = $"Server={host};Port={port};Database={database};" +
+                                      $"Uid={user};Pwd={password};AllowPublicKeyRetrieval=true;SslMode=Required;ConnectionTimeout=30;Pooling=true;";
+                
+                    Console.WriteLine("Using MYSQL_PUBLIC_URL for connection");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to parse MYSQL_PUBLIC_URL as URI: {ex.Message}");
+                }
+            }
+        }
+        
+        // 3. Try building from individual environment variables
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            var mysqlHost = Environment.GetEnvironmentVariable("MYSQLHOST");
+            var mysqlPort = Environment.GetEnvironmentVariable("MYSQLPORT");
+            var mysqlDatabase = Environment.GetEnvironmentVariable("MYSQLDATABASE") ?? 
+                               Environment.GetEnvironmentVariable("MYSQL_DATABASE");
+            var mysqlUser = Environment.GetEnvironmentVariable("MYSQLUSER");
+            var mysqlPassword = Environment.GetEnvironmentVariable("MYSQLPASSWORD");
+            
+            Console.WriteLine($"MYSQLHOST: {mysqlHost}");
+            Console.WriteLine($"MYSQLPORT: {mysqlPort}");
+            Console.WriteLine($"MYSQLDATABASE: {mysqlDatabase}");
+            Console.WriteLine($"MYSQLUSER: {mysqlUser}");
+            Console.WriteLine($"MYSQLPASSWORD: {(string.IsNullOrEmpty(mysqlPassword) ? "null" : "set")}");
+            
+            if (!string.IsNullOrEmpty(mysqlHost) && 
+                !string.IsNullOrEmpty(mysqlDatabase) && 
+                !string.IsNullOrEmpty(mysqlUser) && 
+                !string.IsNullOrEmpty(mysqlPassword))
+            {
+                connectionString = $"Server={mysqlHost};Port={mysqlPort ?? "3306"};Database={mysqlDatabase};" +
+                                  $"Uid={mysqlUser};Pwd={mysqlPassword};AllowPublicKeyRetrieval=true;ConnectionTimeout=30;Pooling=true;";
+                
+                Console.WriteLine("Using individual MySQL environment variables for connection");
+                Console.WriteLine($"Connection string (partial): Server={mysqlHost};Port={mysqlPort ?? "3306"};Database={mysqlDatabase};Uid={mysqlUser};Pwd=***");
+            }
+            else
+            {
+                // Fallback to configuration
+                connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+                Console.WriteLine("Using connection string from configuration");
+            }
+        }
+        
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new Exception("No database connection string could be determined. Please configure your database connection.");
+        }
+        
+        // Automatically detect server version from connection string
+        options.UseMySql(
+            connectionString,
+            ServerVersion.AutoDetect(connectionString)
+        );
+        
+        Console.WriteLine("MySQL database connection configured.");
     }
 });
 
@@ -72,8 +200,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateAudience = true,
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
-            ValidIssuer = builder.Configuration["Jwt:Issuer"],
-            ValidAudience = builder.Configuration["Jwt:Audience"],
+            ValidIssuer = builder.Configuration["Jwt:Issuer"] ?? "DefaultIssuer",
+            ValidAudience = builder.Configuration["Jwt:Audience"] ?? "DefaultAudience",
             IssuerSigningKey = new SymmetricSecurityKey(
                 Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"] ?? "temporaryDevelopmentKey12345"))
         };
@@ -81,37 +209,125 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowReactApp", builder =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        builder.WithOrigins("http://localhost:3000")
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        policy
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .WithExposedHeaders("Content-Disposition");
     });
 });
 
 var app = builder.Build();
+
+// Apply CORS middleware early in the pipeline
+app.UseCors("AllowAll");
 
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
-    
-    // Initialize the database with seed data in development
-    using (var scope = app.Services.CreateScope())
-    {
-        var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-        dbContext.Database.EnsureCreated(); // Creates the database if it doesn't exist
-        
-        // If you want to apply migrations instead, uncomment the line below:
-        // dbContext.Database.Migrate();
-    }
+}
+else 
+{
+    // Still enable Swagger in production but on a specific route
+    app.UseSwagger();
+    app.UseSwaggerUI(c => {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Finance Simplified API V1");
+        c.RoutePrefix = "api-docs";
+    });
 }
 
+// Initialize the database - do this in both development and production
+try 
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        var dbContext = services.GetRequiredService<ApplicationDbContext>();
+    
+        try
+        {
+            // First, test the connection
+            logger.LogInformation("Testing database connection...");
+            bool canConnect = false;
+            try
+            {
+                canConnect = dbContext.Database.CanConnect();
+                logger.LogInformation($"Database connection test result: {(canConnect ? "SUCCESS" : "FAILED")}");
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Database connection test failed with exception");
+                // Continue with migration attempt even if connection test fails
+            }
+
+            logger.LogInformation("Applying database migrations...");
+            try 
+            {
+                // Apply any pending migrations - safer than EnsureCreated() for production
+                dbContext.Database.Migrate();
+                logger.LogInformation("Database migrations applied successfully");
+            }
+            catch (Exception migrationEx) 
+            {
+                // If migration fails, try to ensure schema exists at minimum
+                logger.LogWarning(migrationEx, "Migration failed, attempting to ensure database exists");
+                dbContext.Database.EnsureCreated();
+                logger.LogInformation("Database creation completed");
+            }
+        
+            // Fix schema issues if needed
+            if (!app.Environment.IsDevelopment())
+            {
+                logger.LogInformation("Railway deployment detected. Checking database schema...");
+                try 
+                {
+                    // First, check if we're running on MySQL or SQLite
+                    if (dbContext.Database.GetDbConnection().GetType().Name.Contains("MySql"))
+                    {
+                        // Just log the connection type - don't attempt any schema modifications
+                        logger.LogInformation("Using MySQL database connection");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    logger.LogError(ex, "Error checking database schema");
+                    // Don't fail startup if schema check fails
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error in database initialization");
+            // Continue execution to allow application to start
+        }
+    }
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Critical error during database initialization: {ex.Message}");
+    // Continue execution without database to allow the application to start
+}
+
+// Print environment variables
+Console.WriteLine($"Infura URL: {builder.Configuration["Blockchain:InfuraUrl"]}");
+Console.WriteLine($"TokenContractAddress: {builder.Configuration["Blockchain:TokenContractAddress"]}");
+app.MapGet("/", () => "Hello, Railway!");
+
 app.UseHttpsRedirection();
-app.UseCors("AllowReactApp");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+try 
+{
+    app.Run();
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Unhandled Exception: {ex}");
+}
