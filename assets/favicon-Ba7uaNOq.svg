@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="128" height="128" viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="cryptaragradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B00;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FF9E00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFD700;stop-opacity:1" />
+    </linearGradient>
+    <filter id="coinglow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="3" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <circle cx="64" cy="64" r="64" fill="#0A0E1A" />
+  
+  <!-- Main coin circle -->
+  <circle cx="64" cy="64" r="42" fill="url(#cryptaragradient)" filter="url(#coinglow)" />
+  
+  <!-- Inner coin detail -->
+  <circle cx="64" cy="64" r="36" fill="#0A0E1A" />
+  
+  <!-- Crypto symbol/pattern -->
+  <g transform="translate(64, 64) scale(0.75)">
+    <!-- Letter C for Cryptara -->
+    <path d="M-10,-20 A25,25 0 0,0 -25,0 A25,25 0 0,0 -10,20" 
+          stroke="url(#cryptaragradient)" 
+          stroke-width="8" 
+          fill="none" 
+          filter="url(#coinglow)" />
+          
+    <!-- Modified R for Cryptara -->
+    <path d="M0,-20 L0,20 M0,0 C0,-10 15,-10 15,0 C15,5 10,10 5,15 M0,0 L10,0" 
+          stroke="url(#cryptaragradient)" 
+          stroke-width="8" 
+          fill="none" 
+          filter="url(#coinglow)" />
+  </g>
+  
+  <!-- Digital connection nodes -->
+  <g fill="url(#cryptaragradient)">
+    <circle cx="24" cy="54" r="3" />
+    <circle cx="30" cy="76" r="3" />
+    <circle cx="48" cy="96" r="3" />
+    <circle cx="76" cy="96" r="3" />
+    <circle cx="96" cy="76" r="3" />
+    <circle cx="104" cy="54" r="3" />
+    <circle cx="96" cy="30" r="3" />
+    <circle cx="76" cy="24" r="3" />
+    <circle cx="48" cy="24" r="3" />
+    <circle cx="30" cy="40" r="3" />
+  </g>
+  
+  <!-- Connection lines -->
+  <g stroke="url(#cryptaragradient)" stroke-width="1.5" fill="none" opacity="0.6">
+    <path d="M24,54 L30,76 L48,96 L76,96 L96,76 L104,54 L96,30 L76,24 L48,24 L30,40 Z" />
+    <path d="M30,76 L76,24" />
+    <path d="M48,96 L96,30" />
+    <path d="M24,54 L96,76" />
+    <path d="M30,40 L104,54" />
+  </g>
+</svg>
