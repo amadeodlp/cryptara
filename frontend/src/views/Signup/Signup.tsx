@@ -32,7 +32,7 @@ const Signup: React.FC = () => {
   // Redirect on successful registration
   useEffect(() => {
     if (isSuccess) {
-      navigate('/login');
+      navigate('/login', { state: { fromSignup: true } });
     }
   }, [isSuccess, navigate]);
 

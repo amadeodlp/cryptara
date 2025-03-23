@@ -18,6 +18,7 @@ import Transactions from './views/Transactions';
 
 // Layout components
 import MainLayout from './components/organisms/MainLayout';
+import { ToastContainer } from './components/atoms/Toast';
 
 const App: React.FC = () => {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -28,16 +29,18 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <Routes>
+    <>
+      <ToastContainer />
+      <Routes>
       <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/dashboard" />} />
       <Route path="/signup" element={!isAuthenticated ? <Signup /> : <Navigate to="/dashboard" />} />
       
-      {/* Protected routes */}
+      {/* Routes accessible with or without authentication */}
       <Route element={<MainLayout />}>
-        <Route path="/" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
-        <Route path="/dashboard" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
-        <Route path="/exchange" element={isAuthenticated ? <Exchange /> : <Navigate to="/login" />} />
-        <Route path="/staking" element={isAuthenticated ? <Staking /> : <Navigate to="/login" />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/exchange" element={<Exchange />} />
+        <Route path="/staking" element={<Staking />} />
         <Route path="/portfolio" element={isAuthenticated ? <Portfolio /> : <Navigate to="/login" />} />
         <Route path="/transactions" element={isAuthenticated ? <Transactions /> : <Navigate to="/login" />} />
       </Route>
@@ -45,6 +48,7 @@ const App: React.FC = () => {
       {/* Fallback route */}
       <Route path="*" element={<Navigate to="/" />} />
     </Routes>
+    </>
   );
 };
 
