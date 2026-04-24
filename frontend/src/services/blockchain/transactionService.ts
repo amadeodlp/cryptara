@@ -1,5 +1,5 @@
-import { ethers } from 'ethers';
-import { getProvider } from '../web3Service';
+import { supabase } from '@/lib/supabase';
+import { getProvider as _getProvider } from '../web3Service';
 
 export interface Transaction {
   id: string;
@@ -18,90 +18,48 @@ export interface Transaction {
   txHash?: string;
 }
 
-// Fetch transactions from backend API
-export const fetchTransactions = async (walletAddress: string): Promise<Transaction[]> => {
-  try {
-    console.log(`Fetching transactions for ${walletAddress} from backend API...`);
-    
-    const response = await fetch(`/api/transaction/recent?address=${walletAddress}`);
-    
-    if (!response.ok) {
-      throw new Error(`API returned status ${response.status}`);
-    }
-    
-    const data = await response.json();
-    console.log(`Successfully retrieved ${data.length} transactions from API`);
-    return data;
-  } catch (error) {
-    console.error('Error fetching transactions from API:', error);
-    
-    // Try to fetch directly from Etherscan API (could be implemented)
-    try {
-      return await fetchTransactionsFromEtherscan(walletAddress);
-    } catch (etherscanError) {
-      console.error('Error fetching from Etherscan:', etherscanError);
-      throw error; // Rethrow so the component can handle it
-    }
-  }
-};
+function mapRow(row: any): Transaction {
+  return {
+    id: String(row.id),
+    type: row.type.charAt(0) + row.type.slice(1).toLowerCase(), // SENT → Sent
+    asset: row.asset,
+    amount: row.amount ? String(row.amount) : undefined,
+    from: row.from_address || undefined,
+    to: row.to_address || undefined,
+    date: row.created_at,
+    status: row.status || 'Completed',
+    fee: row.fee || undefined,
+    txHash: row.tx_hash || undefined,
+  };
+}
 
-// Fetch transactions directly from Etherscan API
-const fetchTransactionsFromEtherscan = async (walletAddress: string): Promise<Transaction[]> => {
-  // This could be implemented using Etherscan's API if you have an API key
-  // For now, just throw to let the component handle with fallback data
-  throw new Error('Direct Etherscan fetching not implemented');
-};
+// Fetch transactions from Supabase for the authenticated user
+export const fetchTransactions = async (_walletAddress: string): Promise<Transaction[]> => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return [];
 
-// Get basic transactions from wallet history
-export const getWalletHistory = async (walletAddress: string): Promise<Transaction[]> => {
-  try {
-    console.log(`Getting wallet history for ${walletAddress} directly from blockchain...`);
-    const provider = getProvider();
-    
-    // Get the recent transaction history
-    const history = await provider.getHistory(walletAddress);
-    
-    if (!history || history.length === 0) {
-      console.log('No transaction history found');
-      return [];
-    }
-    
-    console.log(`Found ${history.length} transactions in wallet history`);
-    
-    // Map blockchain transactions to our Transaction interface
-    return await Promise.all(history.map(async (tx) => {
-      // Get block to get timestamp
-      const block = await provider.getBlock(tx.blockHash);
-      const timestamp = block ? new Date(Number(block.timestamp) * 1000).toISOString() : new Date().toISOString();
-      
-      const fromAddress = tx.from.toLowerCase();
-      const isReceived = walletAddress.toLowerCase() !== fromAddress;
-      
-      return {
-        id: tx.hash,
-        type: isReceived ? 'Received' : 'Sent',
-        asset: 'ETH',
-        amount: ethers.formatEther(tx.value),
-        from: isReceived ? tx.from : undefined,
-        to: !isReceived ? tx.to ?? undefined : undefined,
-        date: timestamp,
-        status: 'Completed',
-        fee: tx.gasPrice ? ethers.formatEther(tx.gasPrice * tx.gasLimit) + ' ETH' : undefined,
-        txHash: tx.hash
-      };
-    }));
-  } catch (error) {
-    console.error('Error getting wallet history:', error);
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching transactions:', error);
     throw error;
   }
+
+  return (data || []).map(mapRow);
 };
 
-// Mark clearly when using placeholder data
+// Get basic transactions from wallet history (blockchain fallback — ethers v6 removed getHistory)
+export const getWalletHistory = async (_walletAddress: string): Promise<Transaction[]> => {
+  throw new Error('Direct blockchain history not available in ethers v6');
+};
+
 export const getPlaceholderTransactions = (showPlaceholderFlag = true): Transaction[] => {
   console.warn('Using placeholder transaction data!');
   const now = new Date();
-  
-  // Use the exact same structure as the real transactions
   return [
     {
       id: 't1',
@@ -112,7 +70,7 @@ export const getPlaceholderTransactions = (showPlaceholderFlag = true): Transact
       date: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
       status: showPlaceholderFlag ? 'PLACEHOLDER' : 'Completed',
       fee: '0.002 ETH',
-      txHash: '0x3a1bda28a5cf9cb3268e52d781de0Nb38162Ge3f'
+      txHash: '0x3a1bda28a5cf9cb3268e52d781de0Nb38162Ge3f',
     },
     {
       id: 't2',
@@ -123,8 +81,7 @@ export const getPlaceholderTransactions = (showPlaceholderFlag = true): Transact
       date: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
       status: showPlaceholderFlag ? 'PLACEHOLDER' : 'Completed',
       fee: '0.001 ETH',
-      txHash: '0x5c2e9a8b1f4d7e6a3b2c1d0e9f8e7d6c5b4a3f2e'
+      txHash: '0x5c2e9a8b1f4d7e6a3b2c1d0e9f8e7d6c5b4a3f2e',
     },
-    // You can include the other placeholder transactions here
   ];
 };

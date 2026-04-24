@@ -1,28 +1,26 @@
 import React, { useState, useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import { addNotification } from '@/redux/slices/notificationSlice';
-import { useLoginMutation } from '@/redux/api/authApi';
-import { login } from '@/redux/slices/authSlice';
-import Button from '@/components/atoms/Button';
-import Input from '@/components/atoms/Input';
+import { loginThunk } from '@/redux/slices/authSlice';
+import { AppDispatch, RootState } from '@/redux/store';
 import './styles.css';
 
 const Login: React.FC = () => {
-  const dispatch = useDispatch();
+  const dispatch = useDispatch<AppDispatch>();
   const location = useLocation();
-  const [loginUser, { isLoading }] = useLoginMutation();
-  
+  const { isLoading, error } = useSelector((state: RootState) => state.auth);
+
   const [formData, setFormData] = useState({
     email: '',
     password: '',
   });
-  
-  const [errors, setErrors] = useState({
+
+  const [formErrors, setFormErrors] = useState({
     email: '',
     password: '',
   });
-  
+
   const [backgroundImage, setBackgroundImage] = useState(0);
   const backgrounds = [
     'url("/src/assets/images/bg-finance-1.jpg")',
@@ -30,18 +28,14 @@ const Login: React.FC = () => {
     'url("/src/assets/images/bg-finance-3.jpg")',
   ];
 
-  // Cycle through background images
   useEffect(() => {
     const interval = setInterval(() => {
       setBackgroundImage((prev) => (prev + 1) % backgrounds.length);
     }, 8000);
-    
     return () => clearInterval(interval);
   }, []);
-  
-  // Check for signup redirect
+
   useEffect(() => {
-    // Check if user was redirected from signup page
     if (location.state && location.state.fromSignup) {
       dispatch(addNotification({
         message: 'Account created successfully! Please log in.',
@@ -54,76 +48,54 @@ const Login: React.FC = () => {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user types
-    if (errors[name as keyof typeof errors]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
+    if (formErrors[name as keyof typeof formErrors]) {
+      setFormErrors(prev => ({ ...prev, [name]: '' }));
     }
   };
 
   const validate = () => {
-    const newErrors = {
-      email: '',
-      password: '',
-    };
-    
+    const newErrors = { email: '', password: '' };
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = 'Email is invalid';
     }
-    
     if (!formData.password) {
       newErrors.password = 'Password is required';
     } else if (formData.password.length < 6) {
       newErrors.password = 'Password must be at least 6 characters';
     }
-    
-    setErrors(newErrors);
+    setFormErrors(newErrors);
     return !newErrors.email && !newErrors.password;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!validate()) return;
-    
-    try {
-      const result = await loginUser(formData).unwrap();
-      dispatch(login({ user: result.user, token: result.token }));
-    } catch (error) {
-      console.error('Login failed:', error);
-      // Show generic error
-      setErrors({
-        email: '',
-        password: 'Invalid email or password'
-      });
-    }
+    dispatch(loginThunk({ email: formData.email, password: formData.password }));
   };
 
   return (
     <div className="login-page">
-      <div 
-        className="login-background" 
-        style={{ 
-          backgroundImage: backgrounds[backgroundImage],
-          opacity: 1,
-        }}
+      <div
+        className="login-background"
+        style={{ backgroundImage: backgrounds[backgroundImage], opacity: 1 }}
       ></div>
       <div className="login-overlay"></div>
-      
+
       <div className="login">
         <div className="login__container">
           <div className="login__logo-container">
             <h1 className="login__logo"><span className="text-gradient">Cryptara</span></h1>
             <p className="login__tagline">Secure. Efficient. Decentralized.</p>
           </div>
-          
+
           <div className="login__card glass-card">
             <div className="login__header">
               <h2 className="login__title">Welcome Back</h2>
               <p className="login__subtitle">Sign in to your account</p>
             </div>
-            
+
             <form className="login__form" onSubmit={handleSubmit}>
               <div className="form-group">
                 <label htmlFor="email" className="input-label">Email</label>
@@ -137,9 +109,9 @@ const Login: React.FC = () => {
                   placeholder="your@email.com"
                   autoComplete="email"
                 />
-                {errors.email && <div className="input-error">{errors.email}</div>}
+                {formErrors.email && <div className="input-error">{formErrors.email}</div>}
               </div>
-              
+
               <div className="form-group">
                 <div className="label-row">
                   <label htmlFor="password" className="input-label">Password</label>
@@ -155,9 +127,10 @@ const Login: React.FC = () => {
                   placeholder="••••••"
                   autoComplete="current-password"
                 />
-                {errors.password && <div className="input-error">{errors.password}</div>}
+                {formErrors.password && <div className="input-error">{formErrors.password}</div>}
+                {error && <div className="input-error">{error}</div>}
               </div>
-              
+
               <div className="remember-me">
                 <label className="checkbox-container">
                   <input type="checkbox" />
@@ -165,27 +138,23 @@ const Login: React.FC = () => {
                   <span className="checkbox-label">Remember me</span>
                 </label>
               </div>
-              
+
               <button
                 type="submit"
                 className="btn-gradient login-btn"
                 disabled={isLoading}
               >
-                {isLoading ? (
-                  <span className="loading-spinner"></span>
-                ) : (
-                  'Sign In'
-                )}
+                {isLoading ? <span className="loading-spinner"></span> : 'Sign In'}
               </button>
             </form>
-            
+
             <div className="login__footer">
               <p className="signup-prompt">
                 Don't have an account? <Link to="/signup" className="signup-link">Sign up</Link>
               </p>
             </div>
           </div>
-          
+
           <div className="login__features">
             <div className="feature-item">
               <div className="feature-icon">🔒</div>

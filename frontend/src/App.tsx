@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { RootState } from './redux/store';
+import { useSelector, useDispatch } from 'react-redux';
+import { RootState, AppDispatch } from './redux/store';
+import { restoreSessionThunk } from './redux/slices/authSlice';
 
 // Config
 import { initializeContracts } from './config/contracts';
@@ -22,10 +23,11 @@ import { ToastContainer } from './components/atoms/Toast';
 
 const App: React.FC = () => {
   const { isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch<AppDispatch>();
 
   useEffect(() => {
-    // Initialize blockchain contract addresses
     initializeContracts();
+    dispatch(restoreSessionThunk());
   }, []);
 
   return (
