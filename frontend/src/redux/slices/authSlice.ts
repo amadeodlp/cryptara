@@ -56,7 +56,7 @@ export const registerThunk = createAsyncThunk(
       email,
       password,
       options: {
-        data: { username: name },
+        data: { username: name, app_name: 'Cryptara' },
         emailRedirectTo: 'https://cryptara.lat',
       },
     });
