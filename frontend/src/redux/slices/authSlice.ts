@@ -55,7 +55,10 @@ export const registerThunk = createAsyncThunk(
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { username: name } },
+      options: {
+        data: { username: name },
+        emailRedirectTo: 'https://cryptara.lat',
+      },
     });
     if (error) return rejectWithValue(error.message);
   }
