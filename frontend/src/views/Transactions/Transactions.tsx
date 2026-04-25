@@ -13,6 +13,7 @@ const Transactions: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [copyFeedback, setCopyFeedback] = useState<string | null>(null);
   
   useEffect(() => {
     const loadTransactions = async () => {
@@ -26,11 +27,9 @@ const Transactions: React.FC = () => {
           return;
         }
         
-        // Set a flag to show where data is coming from
         let dataSource = '';
         
         try {
-          // First try to get transactions from the backend API
           const apiTransactions = await fetchTransactions(walletAddress);
           if (apiTransactions && apiTransactions.length > 0) {
             setTransactions(apiTransactions);
@@ -43,7 +42,6 @@ const Transactions: React.FC = () => {
           console.warn('Backend API not available, trying direct blockchain query:', apiError);
           
           try {
-            // If backend fails, try to directly query wallet history from blockchain
             if (isMetaMaskInstalled()) {
               const historyTransactions = await getWalletHistory(walletAddress);
               if (historyTransactions && historyTransactions.length > 0) {
@@ -59,7 +57,6 @@ const Transactions: React.FC = () => {
           } catch (blockchainError) {
             console.warn('Direct blockchain query failed, using placeholder data:', blockchainError);
             
-            // If all else fails, use placeholder data (but clearly mark it as such)
             const placeholderData = getPlaceholderTransactions(true);
             setTransactions(placeholderData);
             setFilteredTransactions(placeholderData);
@@ -82,15 +79,12 @@ const Transactions: React.FC = () => {
   }, []);
   
   useEffect(() => {
-    // Filter and search transactions
     let result = [...transactions];
     
-    // Apply type filter
     if (activeFilter !== 'all') {
       result = result.filter(tx => tx.type.toLowerCase() === activeFilter.toLowerCase());
     }
     
-    // Apply search term
     if (searchTerm.trim() !== '') {
       const search = searchTerm.toLowerCase();
       result = result.filter(tx => 
@@ -103,7 +97,6 @@ const Transactions: React.FC = () => {
       );
     }
     
-    // Sort by date
     result.sort((a, b) => {
       const dateA = new Date(a.date).getTime();
       const dateB = new Date(b.date).getTime();
@@ -123,6 +116,38 @@ const Transactions: React.FC = () => {
   
   const handleSortToggle = () => {
     setSortOrder(sortOrder === 'desc' ? 'asc' : 'desc');
+  };
+
+  const handleCopyTxHash = (txHash: string) => {
+    navigator.clipboard.writeText(txHash).then(() => {
+      setCopyFeedback(txHash);
+      setTimeout(() => setCopyFeedback(null), 2000);
+    });
+  };
+
+  const handleExportCSV = () => {
+    if (filteredTransactions.length === 0) return;
+    const headers = ['ID', 'Type', 'Date', 'Asset', 'Amount', 'From', 'To', 'Fee', 'Status', 'TxHash'];
+    const rows = filteredTransactions.map(tx => [
+      tx.id,
+      tx.type,
+      tx.date,
+      tx.asset || `${tx.assetFrom} -> ${tx.assetTo}`,
+      tx.amount || `${tx.amountFrom} -> ${tx.amountTo}`,
+      tx.from || '',
+      tx.to || '',
+      tx.fee || '',
+      tx.status,
+      tx.txHash || ''
+    ]);
+    const csvContent = [headers, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'transactions.csv';
+    a.click();
+    URL.revokeObjectURL(url);
   };
   
   const formatDate = (dateString: string) => {
@@ -299,9 +324,15 @@ const Transactions: React.FC = () => {
                         <td>
                           <div className="tx-hash">
                             {truncateAddress(tx.txHash || '')}
-                            <button className="copy-button" title="Copy transaction hash">
-                              📋
-                            </button>
+                            {tx.txHash && (
+                              <button
+                                className="copy-button"
+                                title={copyFeedback === tx.txHash ? 'Copied!' : 'Copy transaction hash'}
+                                onClick={() => handleCopyTxHash(tx.txHash!)}
+                              >
+                                {copyFeedback === tx.txHash ? '✅' : '📋'}
+                              </button>
+                            )}
                           </div>
                         </td>
                       </tr>
@@ -329,11 +360,11 @@ const Transactions: React.FC = () => {
               <h3>Export Transactions</h3>
               <p>Download your transaction history for accounting or tax purposes</p>
               <div className="export-buttons">
-                <button className="export-button">
+                <button className="export-button" onClick={handleExportCSV} disabled={filteredTransactions.length === 0}>
                   <span className="export-icon">📊</span>
                   Export CSV
                 </button>
-                <button className="export-button">
+                <button className="export-button" disabled title="PDF export coming soon">
                   <span className="export-icon">📑</span>
                   Export PDF
                 </button>

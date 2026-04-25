@@ -1,22 +1,24 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '@/redux/store';
+import { useNavigate } from 'react-router-dom';
 import PortfolioAnalytics from '@/components/PortfolioAnalytics';
 import './styles.css';
 
+type Timeframe = '1d' | '1w' | '1m' | '3m' | '1y' | 'all';
+
 const Portfolio: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
   const [portfolioData, setPortfolioData] = useState<any>([]);
   const [totalValue, setTotalValue] = useState<string>('0.00');
   const [totalProfit, setTotalProfit] = useState<string>('0.00');
   const [profitPercentage, setProfitPercentage] = useState<string>('0.00');
-  const [selectedTimeframe, setSelectedTimeframe] = useState<string>('1m');
+  const [selectedTimeframe, setSelectedTimeframe] = useState<Timeframe>('1m');
   const [isLoading, setIsLoading] = useState<boolean>(true);
   
   useEffect(() => {
-    // Simulate API calls with setTimeout
     setTimeout(() => {
-      // Simulate fetching portfolio data
       const mockPortfolioData = [
         { 
           id: 1, 
@@ -73,10 +75,10 @@ const Portfolio: React.FC = () => {
       setTotalProfit('1,136.56');
       setProfitPercentage('4.32');
       setIsLoading(false);
-    }, 1200); // Simulate network delay
+    }, 1200);
   }, []);
 
-  const handleTimeframeChange = (timeframe: string) => {
+  const handleTimeframeChange = (timeframe: Timeframe) => {
     setSelectedTimeframe(timeframe);
   };
 
@@ -106,42 +108,15 @@ const Portfolio: React.FC = () => {
               </div>
             </div>
             <div className="timeframe-selector">
-              <button 
-                className={`timeframe-button ${selectedTimeframe === '1d' ? 'active' : ''}`} 
-                onClick={() => handleTimeframeChange('1d')}
-              >
-                1D
-              </button>
-              <button 
-                className={`timeframe-button ${selectedTimeframe === '1w' ? 'active' : ''}`} 
-                onClick={() => handleTimeframeChange('1w')}
-              >
-                1W
-              </button>
-              <button 
-                className={`timeframe-button ${selectedTimeframe === '1m' ? 'active' : ''}`} 
-                onClick={() => handleTimeframeChange('1m')}
-              >
-                1M
-              </button>
-              <button 
-                className={`timeframe-button ${selectedTimeframe === '3m' ? 'active' : ''}`} 
-                onClick={() => handleTimeframeChange('3m')}
-              >
-                3M
-              </button>
-              <button 
-                className={`timeframe-button ${selectedTimeframe === '1y' ? 'active' : ''}`} 
-                onClick={() => handleTimeframeChange('1y')}
-              >
-                1Y
-              </button>
-              <button 
-                className={`timeframe-button ${selectedTimeframe === 'all' ? 'active' : ''}`} 
-                onClick={() => handleTimeframeChange('all')}
-              >
-                All
-              </button>
+              {(['1d', '1w', '1m', '3m', '1y', 'all'] as Timeframe[]).map(tf => (
+                <button
+                  key={tf}
+                  className={`timeframe-button ${selectedTimeframe === tf ? 'active' : ''}`}
+                  onClick={() => handleTimeframeChange(tf)}
+                >
+                  {tf.toUpperCase()}
+                </button>
+              ))}
             </div>
           </div>
           
@@ -154,7 +129,6 @@ const Portfolio: React.FC = () => {
             <div className="portfolio-distribution glass-card">
               <h2>Portfolio Distribution</h2>
               <div className="allocation-chart">
-                {/* This would be a pie chart in real implementation */}
                 <div className="placeholder-chart">
                   <div className="chart-segment eth" style={{width: '34.1%'}} title="ETH: 34.1%"></div>
                   <div className="chart-segment btc" style={{width: '41.1%'}} title="BTC: 41.1%"></div>
@@ -229,19 +203,29 @@ const Portfolio: React.FC = () => {
             <div className="portfolio-actions-section glass-card">
               <h2>Portfolio Actions</h2>
               <div className="portfolio-action-buttons">
-                <button className="action-button">
+                <button className="action-button" onClick={() => navigate('/transactions')}>
                   <div className="action-icon">↑</div>
                   <div>Transfer Assets</div>
                 </button>
-                <button className="action-button">
+                <button className="action-button" onClick={() => navigate('/exchange')}>
                   <div className="action-icon">📊</div>
                   <div>Rebalance Portfolio</div>
                 </button>
-                <button className="action-button">
+                <button className="action-button" onClick={() => {
+                  const rows = portfolioData.map((a: any) => `${a.name},${a.symbol},${a.amount},${a.value},${a.profit}`);
+                  const csv = ['Name,Symbol,Amount,Value,Profit', ...rows].join('\n');
+                  const blob = new Blob([csv], { type: 'text/csv' });
+                  const url = URL.createObjectURL(blob);
+                  const anchor = document.createElement('a');
+                  anchor.href = url;
+                  anchor.download = 'portfolio.csv';
+                  anchor.click();
+                  URL.revokeObjectURL(url);
+                }}>
                   <div className="action-icon">⬇️</div>
                   <div>Export History</div>
                 </button>
-                <button className="action-button">
+                <button className="action-button" onClick={() => navigate('/transactions')}>
                   <div className="action-icon">🔄</div>
                   <div>Tax Report</div>
                 </button>
