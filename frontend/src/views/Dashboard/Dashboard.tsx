@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
+import { useNavigate } from 'react-router-dom';
 import { RootState } from '@/redux/store';
 import PortfolioAnalytics from '@/components/PortfolioAnalytics';
 import { isMetaMaskInstalled, connectWallet as connectMetaMask, getTokenBalance, getWalletBalance } from '@/services/web3Service';
@@ -8,6 +9,7 @@ import './styles.css';
 
 const Dashboard: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
   const [totalBalance, setTotalBalance] = useState<string>('0.00');
   const [isWalletConnected, setIsWalletConnected] = useState<boolean>(false);
   const [walletAddress, setWalletAddress] = useState<string>('');
@@ -22,7 +24,6 @@ const Dashboard: React.FC = () => {
       setIsLoading(true);
       
       try {
-        // Check if MetaMask is installed and connected
         const connected = isMetaMaskInstalled() && localStorage.getItem('walletConnected') === 'true';
         const address = localStorage.getItem('walletAddress') || '';
         setIsWalletConnected(connected);
@@ -30,47 +31,37 @@ const Dashboard: React.FC = () => {
         
         if (connected && address) {
           try {
-            // Get ETH balance from MetaMask
             const provider = new ethers.BrowserProvider(window.ethereum);
             const ethBalance = await provider.getBalance(address);
             const formattedEthBalance = ethers.formatEther(ethBalance);
-            const ethUsdValue = parseFloat(formattedEthBalance) * 1800; // Approximate ETH value in USD
+            const ethUsdValue = parseFloat(formattedEthBalance) * 1800;
             
-            // Try to get FIN token balance from wallet contract
             let finUsdValue = 0;
             let formattedFinBalance = "0";
             try {
               const finBalance = await getTokenBalance(address);
-              // Convert from wei to ether and format
               formattedFinBalance = ethers.formatEther(finBalance);
-              // Calculate USD value
-              finUsdValue = parseFloat(formattedFinBalance) * 1.65; // Approximate FIN value in USD
+              finUsdValue = parseFloat(formattedFinBalance) * 1.65;
             } catch (finError) {
               console.error('Error getting FIN token balance:', finError);
             }
             
-            // Get staked tokens if available
             let stakedUsdValue = 0;
             let formattedStakedAmount = "0";
             try {
               const stakedAmount = await getWalletBalance(address);
               formattedStakedAmount = ethers.formatEther(stakedAmount);
-              stakedUsdValue = parseFloat(formattedStakedAmount) * 1.65; // Approximate staked value in USD
+              stakedUsdValue = parseFloat(formattedStakedAmount) * 1.65;
             } catch (stakingError) {
               console.error('Error getting staked token balance:', stakingError);
             }
             
-            // Calculate and set total balance with two decimal places
             const totalUsdValue = ethUsdValue + finUsdValue + stakedUsdValue;
             setTotalBalance(totalUsdValue.toLocaleString('en-US', { maximumFractionDigits: 2 }));
-            
-            // Mark data source as real blockchain data
             setDataSource('Sepolia Network');
             
-            // Set user assets
             const userAssets = [];
             
-            // Add ETH if there is any
             if (parseFloat(formattedEthBalance) > 0) {
               userAssets.push({ 
                 id: 'eth', 
@@ -83,7 +74,6 @@ const Dashboard: React.FC = () => {
               });
             }
             
-            // Try to get FIN token if there is any
             if (parseFloat(formattedFinBalance) > 0) {
               userAssets.push({ 
                 id: 'fin', 
@@ -96,7 +86,6 @@ const Dashboard: React.FC = () => {
               });
             }
             
-            // Try to add staked tokens if there are any
             if (parseFloat(formattedStakedAmount) > 0) {
               userAssets.push({ 
                 id: 'staked-fin', 
@@ -109,35 +98,26 @@ const Dashboard: React.FC = () => {
               });
             }
             
-            // If we have assets, set them
             if (userAssets.length > 0) {
               setAssets(userAssets);
             } else {
-              // Otherwise try the API
               try {
                 const response = await fetch(`/api/wallet/assets?address=${address}`);
                 if (response.ok) {
                   const assetsData = await response.json();
                   setAssets(assetsData);
-                } else {
-                  // Fallback to local assets if API fails
-                  console.warn('Could not fetch assets from API, using locally calculated assets');
                 }
               } catch (error) {
                 console.error('Error fetching assets from API:', error);
-                // We already have the userAssets calculated above, so we just keep using those
-                console.warn('Using directly calculated blockchain assets');
               }
             }
             
-            // Get recent transactions
             try {
               const txResponse = await fetch(`/api/transaction/recent?address=${address}`);
               if (txResponse.ok) {
                 const txData = await txResponse.json();
                 setRecentTransactions(txData);
               } else {
-                // Fallback to empty transactions list
                 setRecentTransactions([]);
               }
             } catch (error) {
@@ -146,18 +126,15 @@ const Dashboard: React.FC = () => {
             }
           } catch (error) {
             console.error('Error loading blockchain data:', error);
-            // Show zero balances if we can't load wallet data
             setTotalBalance('0.00');
             setAssets([]);
           }
         } else {
-          // No wallet connected, show empty state
           setTotalBalance('0.00');
           setAssets([]);
           setRecentTransactions([]);
         }
         
-        // Get market overview from price feed API
         try {
           const marketResponse = await fetch('/api/pricefeed/bulk?symbols=BTC,ETH,BNB,SOL,ADA');
           if (marketResponse.ok) {
@@ -170,7 +147,6 @@ const Dashboard: React.FC = () => {
               change: token.percentChange24h >= 0 ? `+${token.percentChange24h.toFixed(1)}` : token.percentChange24h.toFixed(1)
             })));
           } else {
-            // Fallback to mock market data
             setMarketOverview([
               { id: 'btc', name: 'Bitcoin', symbol: 'BTC', price: '62,485.20', change: '+2.8' },
               { id: 'eth', name: 'Ethereum', symbol: 'ETH', price: '3,805.62', change: '+5.2' },
@@ -181,7 +157,6 @@ const Dashboard: React.FC = () => {
           }
         } catch (error) {
           console.error('Error fetching market data:', error);
-          // Fallback to mock market data
           setMarketOverview([
             { id: 'btc', name: 'Bitcoin', symbol: 'BTC', price: '62,485.20', change: '+2.8' },
             { id: 'eth', name: 'Ethereum', symbol: 'ETH', price: '3,805.62', change: '+5.2' },
@@ -203,12 +178,9 @@ const Dashboard: React.FC = () => {
 
   const connectWallet = async () => {
     try {
-      // Use the web3Service connectWallet function
       const address = await connectMetaMask();
       setWalletAddress(address);
       setIsWalletConnected(true);
-      
-      // Reload dashboard data after wallet connection
       window.location.reload();
     } catch (error) {
       console.error('Error connecting wallet:', error);
@@ -271,11 +243,10 @@ const Dashboard: React.FC = () => {
           </div>
           
           <div className="dashboard-grid">
-            {/* Portfolio section */}
             <div className="portfolio-section glass-card">
               <div className="section-header">
                 <h2>Your Portfolio</h2>
-                <button className="btn-secondary">View All</button>
+                <button className="btn-secondary" onClick={() => navigate('/portfolio')}>View All</button>
               </div>
               
               <div className="assets-list">
@@ -303,30 +274,29 @@ const Dashboard: React.FC = () => {
               </div>
               
               <div className="portfolio-actions">
-                <button className="action-button">
+                <button className="action-button" onClick={() => navigate('/transactions')}>
                   <span className="action-icon">↑</span>
                   <span>Send</span>
                 </button>
-                <button className="action-button">
+                <button className="action-button" onClick={() => navigate('/transactions')}>
                   <span className="action-icon">↓</span>
                   <span>Receive</span>
                 </button>
-                <button className="action-button">
+                <button className="action-button" onClick={() => navigate('/exchange')}>
                   <span className="action-icon">⇄</span>
                   <span>Swap</span>
                 </button>
-                <button className="action-button">
+                <button className="action-button" onClick={() => navigate('/exchange')}>
                   <span className="action-icon">+</span>
                   <span>Buy</span>
                 </button>
               </div>
             </div>
             
-            {/* Recent transactions section */}
             <div className="transactions-section glass-card">
               <div className="section-header">
                 <h2>Recent Transactions</h2>
-                <button className="btn-secondary">View All</button>
+                <button className="btn-secondary" onClick={() => navigate('/transactions')}>View All</button>
               </div>
               
               <div className="transactions-list">
@@ -362,11 +332,10 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             
-            {/* Market overview section */}
             <div className="market-section glass-card">
               <div className="section-header">
                 <h2>Market Overview</h2>
-                <button className="btn-secondary">View Market</button>
+                <button className="btn-secondary" onClick={() => navigate('/exchange')}>View Market</button>
               </div>
               
               <div className="market-list">
@@ -387,34 +356,32 @@ const Dashboard: React.FC = () => {
               </div>
             </div>
             
-            {/* Portfolio Analytics */}
             <PortfolioAnalytics timeframe="1m" />
             
-            {/* Quick actions section */}
             <div className="quick-actions-section glass-card">
               <h2>Quick Actions</h2>
               <div className="quick-actions-grid">
-                <div className="quick-action-card">
+                <div className="quick-action-card" onClick={() => navigate('/exchange')}>
                   <div className="action-icon deposit">💰</div>
                   <div className="action-label">Deposit</div>
                 </div>
-                <div className="quick-action-card">
+                <div className="quick-action-card" onClick={() => navigate('/exchange')}>
                   <div className="action-icon withdraw">💸</div>
                   <div className="action-label">Withdraw</div>
                 </div>
-                <div className="quick-action-card">
+                <div className="quick-action-card" onClick={() => navigate('/staking')}>
                   <div className="action-icon stake">🔒</div>
                   <div className="action-label">Stake</div>
                 </div>
-                <div className="quick-action-card">
+                <div className="quick-action-card" onClick={() => navigate('/exchange')}>
                   <div className="action-icon borrow">🏦</div>
                   <div className="action-label">Borrow</div>
                 </div>
-                <div className="quick-action-card">
+                <div className="quick-action-card" onClick={() => navigate('/staking')}>
                   <div className="action-icon earn">💎</div>
                   <div className="action-label">Earn</div>
                 </div>
-                <div className="quick-action-card">
+                <div className="quick-action-card" onClick={() => navigate('/transactions')}>
                   <div className="action-icon history">📜</div>
                   <div className="action-label">History</div>
                 </div>
