@@ -35,9 +35,7 @@ Cryptara is a crypto portfolio and DeFi platform. Users can track their portfoli
 
 ## Known incomplete areas
 
-- Staking UI — stake/unstake actions update local state only; they do not call the backend staking API (`/api/staking/stake`, `/api/staking/unstake`)
-- NotificationCenter — fetches hardcoded mock data instead of calling `/api/notification`; mark-as-read and delete handlers only mutate local state
-- Portfolio page — assets table shows hardcoded mock data; does not read from wallet or backend
 - Dashboard — market overview falls back to hardcoded prices when `/api/pricefeed/bulk` is unavailable
-- Home page balance — hardcoded `$1,234.56` with a `setTimeout`, not fetched from anywhere
 - Exchange market table — BTC/ETH/SOL/CRA rows are hardcoded HTML, not driven by the price feed API
+- Staking UI — the backend staking positions endpoint returns IDs from the DB but the frontend maps pool IDs by a local counter; if unstake is called before a refresh the wrong `stakingId` may be sent to `/api/staking/unstake/{id}`
+- NotificationCenter — the `/api/notification` endpoint requires auth; if the JWT is expired the component silently shows no notifications with no retry/refresh mechanism
