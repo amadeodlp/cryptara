@@ -13,6 +13,7 @@ interface StakingPool {
   lockPeriod: number;
   rewards: string;
   earlyWithdrawalFee: number;
+  stakingPositionId: number | null;
 }
 
 interface StakeModalProps {
@@ -133,12 +134,14 @@ const StakeModal: React.FC<StakeModalProps> = ({ pool, onClose, onConfirm }) => 
 interface UnstakeModalProps {
   pool: StakingPool;
   onClose: () => void;
-  onConfirm: (poolId: number) => void;
+  onConfirm: (poolId: number, stakingPositionId: number) => void;
 }
 
 const UnstakeModal: React.FC<UnstakeModalProps> = ({ pool, onClose, onConfirm }) => {
   const handleConfirm = () => {
-    onConfirm(pool.id);
+    if (pool.stakingPositionId !== null) {
+      onConfirm(pool.id, pool.stakingPositionId);
+    }
     onClose();
   };
 
@@ -181,7 +184,7 @@ const UnstakeModal: React.FC<UnstakeModalProps> = ({ pool, onClose, onConfirm })
           <button
             className="btn-gradient"
             onClick={handleConfirm}
-            disabled={parseFloat(pool.myStake) <= 0}
+            disabled={parseFloat(pool.myStake) <= 0 || pool.stakingPositionId === null}
           >
             Confirm Unstaking
           </button>
@@ -192,7 +195,7 @@ const UnstakeModal: React.FC<UnstakeModalProps> = ({ pool, onClose, onConfirm })
 };
 
 const Staking: React.FC = () => {
-  const { user, isAuthenticated, token } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
   const [stakingPools, setStakingPools] = useState<StakingPool[]>([]);
   const [selectedPool, setSelectedPool] = useState<StakingPool | null>(null);
   const [modalType, setModalType] = useState<'stake' | 'unstake' | null>(null);
@@ -239,6 +242,10 @@ const Staking: React.FC = () => {
               (p) => p.tokenSymbol === rate.tokenSymbol && p.status === 'Active'
             );
             const myStake = activePositions.reduce((s, p) => s + p.amount, 0);
+            // Use the actual DB position ID from the most recent active position
+            const latestActivePosition = activePositions.length > 0
+              ? activePositions.reduce((latest, p) => p.id > latest.id ? p : latest, activePositions[0])
+              : null;
             const meta = symbolMap[rate.tokenSymbol] ?? { name: `${rate.tokenSymbol} Token`, earlyFee: 10 };
 
             pools.push({
@@ -251,6 +258,7 @@ const Staking: React.FC = () => {
               lockPeriod: rate.durationDays,
               rewards: '0',
               earlyWithdrawalFee: meta.earlyFee,
+              stakingPositionId: latestActivePosition ? latestActivePosition.id : null,
             });
           }
 
@@ -267,10 +275,10 @@ const Staking: React.FC = () => {
 
     const loadFallbackPools = () => {
       setStakingPools([
-        { id: 1, name: 'Finance Token', symbol: 'FIN', apy: 12.5, totalStaked: '1,250,000', myStake: '150', lockPeriod: 30, rewards: '2.45', earlyWithdrawalFee: 10 },
-        { id: 2, name: 'Ethereum', symbol: 'ETH', apy: 5.2, totalStaked: '2,500', myStake: '0.5', lockPeriod: 90, rewards: '0.004', earlyWithdrawalFee: 15 },
-        { id: 3, name: 'Bitcoin', symbol: 'BTC', apy: 3.8, totalStaked: '120', myStake: '0', lockPeriod: 180, rewards: '0', earlyWithdrawalFee: 20 },
-        { id: 4, name: 'Solana', symbol: 'SOL', apy: 8.5, totalStaked: '85,000', myStake: '25', lockPeriod: 30, rewards: '0.32', earlyWithdrawalFee: 10 },
+        { id: 1, name: 'Finance Token', symbol: 'FIN', apy: 12.5, totalStaked: '1,250,000', myStake: '150', lockPeriod: 30, rewards: '2.45', earlyWithdrawalFee: 10, stakingPositionId: null },
+        { id: 2, name: 'Ethereum', symbol: 'ETH', apy: 5.2, totalStaked: '2,500', myStake: '0.5', lockPeriod: 90, rewards: '0.004', earlyWithdrawalFee: 15, stakingPositionId: null },
+        { id: 3, name: 'Bitcoin', symbol: 'BTC', apy: 3.8, totalStaked: '120', myStake: '0', lockPeriod: 180, rewards: '0', earlyWithdrawalFee: 20, stakingPositionId: null },
+        { id: 4, name: 'Solana', symbol: 'SOL', apy: 8.5, totalStaked: '85,000', myStake: '25', lockPeriod: 30, rewards: '0.32', earlyWithdrawalFee: 10, stakingPositionId: null },
       ]);
     };
 
@@ -310,6 +318,7 @@ const Staking: React.FC = () => {
       });
 
       if (res.ok) {
+        const result = await res.json();
         setStakingPools((pools) =>
           pools.map((p) =>
             p.id === poolId
@@ -317,6 +326,7 @@ const Staking: React.FC = () => {
                   ...p,
                   myStake: (parseFloat(p.myStake.replace(/,/g, '')) + parseFloat(amount)).toString(),
                   totalStaked: (parseFloat(p.totalStaked.replace(/,/g, '')) + parseFloat(amount)).toLocaleString(),
+                  stakingPositionId: result.stakingId ?? p.stakingPositionId,
                 }
               : p
           )
@@ -330,12 +340,12 @@ const Staking: React.FC = () => {
     }
   };
 
-  const handleUnstake = async (poolId: number) => {
+  const handleUnstake = async (poolId: number, stakingPositionId: number) => {
     const pool = stakingPools.find((p) => p.id === poolId);
     if (!pool) return;
 
     try {
-      const res = await fetch(`/api/staking/unstake/${poolId}`, {
+      const res = await fetch(`/api/staking/unstake/${stakingPositionId}`, {
         method: 'POST',
         headers: getAuthHeaders(),
       });
@@ -349,6 +359,7 @@ const Staking: React.FC = () => {
                   ...p,
                   myStake: '0',
                   rewards: '0',
+                  stakingPositionId: null,
                   totalStaked: (parseFloat(p.totalStaked.replace(/,/g, '')) - stakedAmount).toLocaleString(),
                 }
               : p
@@ -439,7 +450,7 @@ const Staking: React.FC = () => {
                 <button
                   className="btn-action unstake"
                   onClick={() => openUnstakeModal(pool)}
-                  disabled={!isAuthenticated || parseFloat(pool.myStake.replace(/,/g, '')) <= 0}
+                  disabled={!isAuthenticated || parseFloat(pool.myStake.replace(/,/g, '')) <= 0 || pool.stakingPositionId === null}
                 >
                   Unstake
                 </button>

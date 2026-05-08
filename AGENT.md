@@ -36,6 +36,7 @@ Cryptara is a crypto portfolio and DeFi platform. Users can track their portfoli
 ## Known incomplete areas
 
 - Dashboard — market overview falls back to hardcoded prices when `/api/pricefeed/bulk` is unavailable
-- Exchange market table — BTC/ETH/SOL/CRA rows are hardcoded HTML, not driven by the price feed API
-- Staking UI — the backend staking positions endpoint returns IDs from the DB but the frontend maps pool IDs by a local counter; if unstake is called before a refresh the wrong `stakingId` may be sent to `/api/staking/unstake/{id}`
 - NotificationCenter — the `/api/notification` endpoint requires auth; if the JWT is expired the component silently shows no notifications with no retry/refresh mechanism
+- Staking UI — when multiple active positions exist for the same token symbol, only the most recent position ID is tracked per pool row; unstaking always targets that single position. Partial unstake across multiple positions is not supported.
+- Exchange swap settings button (⚙️) has no handler — clicking it does nothing.
+- TokenPurchase component (`Exchange/TokenPurchase/TokenPurchase.tsx`) references `ethers.BigNumber` which does not exist in ethers v6; this component is not rendered in the current Exchange view but would error if used.
