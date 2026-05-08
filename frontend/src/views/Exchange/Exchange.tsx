@@ -12,7 +12,18 @@ interface Token {
   logo: string;
   balance: string;
   price: string;
-  address?: string; // Contract address
+  address?: string;
+}
+
+interface MarketRow {
+  id: string;
+  logo: string;
+  name: string;
+  symbol: string;
+  price: string;
+  change: string;
+  marketCap: string;
+  volume: string;
 }
 
 const Exchange: React.FC = () => {
@@ -30,28 +41,90 @@ const Exchange: React.FC = () => {
   const [error, setError] = useState<string>('');
   const [swapLoading, setSwapLoading] = useState<boolean>(false);
   const [swapSuccess, setSwapSuccess] = useState<boolean>(false);
-  
+  const [marketRows, setMarketRows] = useState<MarketRow[]>([]);
+  const [marketLoading, setMarketLoading] = useState<boolean>(true);
+
   const wallet = useSelector((state: RootState) => state.wallet);
   const { address, isConnected } = wallet;
+
+  useEffect(() => {
+    const fetchMarketData = async () => {
+      setMarketLoading(true);
+      try {
+        const res = await fetch('/api/pricefeed/bulk?symbols=BTC,ETH,SOL,CRA');
+        if (res.ok) {
+          const data: Array<{
+            symbol: string;
+            name: string;
+            price: number;
+            percentChange24h: number;
+            marketCap: number;
+            volume24h: number;
+          }> = await res.json();
+
+          const logoMap: Record<string, string> = {
+            BTC: '₿',
+            ETH: '🔷',
+            SOL: '◎',
+            CRA: '🪙',
+            FIN: '🪙',
+          };
+
+          setMarketRows(
+            data.map((token) => ({
+              id: token.symbol.toLowerCase(),
+              logo: logoMap[token.symbol] ?? '💰',
+              name: token.name,
+              symbol: token.symbol,
+              price: token.price.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }),
+              change: token.percentChange24h >= 0
+                ? `+${token.percentChange24h.toFixed(1)}%`
+                : `${token.percentChange24h.toFixed(1)}%`,
+              marketCap: token.marketCap >= 1e12
+                ? `$${(token.marketCap / 1e12).toFixed(2)}T`
+                : token.marketCap >= 1e9
+                ? `$${(token.marketCap / 1e9).toFixed(1)}B`
+                : `$${(token.marketCap / 1e6).toFixed(1)}M`,
+              volume: token.volume24h >= 1e9
+                ? `$${(token.volume24h / 1e9).toFixed(1)}B`
+                : `$${(token.volume24h / 1e6).toFixed(1)}M`,
+            }))
+          );
+        } else {
+          setMarketRows(getFallbackMarketRows());
+        }
+      } catch {
+        setMarketRows(getFallbackMarketRows());
+      } finally {
+        setMarketLoading(false);
+      }
+    };
+
+    fetchMarketData();
+  }, []);
+
+  const getFallbackMarketRows = (): MarketRow[] => [
+    { id: 'btc', logo: '₿', name: 'Bitcoin', symbol: 'BTC', price: '62,485.20', change: '+2.8%', marketCap: '$1.21T', volume: '$32.5B' },
+    { id: 'eth', logo: '🔷', name: 'Ethereum', symbol: 'ETH', price: '3,805.62', change: '+5.2%', marketCap: '$457.8B', volume: '$18.7B' },
+    { id: 'sol', logo: '◎', name: 'Solana', symbol: 'SOL', price: '107.52', change: '-1.3%', marketCap: '$46.5B', volume: '$2.1B' },
+    { id: 'cra', logo: '🪙', name: 'Cryptara Token', symbol: 'CRA', price: '1.663', change: '+12.5%', marketCap: '$832.5M', volume: '$156.2M' },
+  ];
 
   useEffect(() => {
     const fetchTokens = async () => {
       try {
         if (!isConnected || !address) {
-          // Use demo data if wallet is not connected
           loadDemoTokens();
           return;
         }
-        
+
         setIsLoading(true);
         const provider = getProvider();
-        
-        // Get ETH balance and price
+
         const ethBalance = await provider.getBalance(address);
-        
-        // Try to get FIT token info if contract is deployed
+
         let fitTokenData: Token | null = null;
-        
+
         try {
           const fitContract = await getTokenContract();
           const fitBalance = await fitContract.balanceOf(address);
@@ -59,7 +132,7 @@ const Exchange: React.FC = () => {
           const fitName = await fitContract.name();
           const tokenPrice = await getTokenPrice();
           const fitPrice = ethers.formatEther(tokenPrice);
-          
+
           fitTokenData = {
             id: 'fit',
             name: fitName,
@@ -71,7 +144,6 @@ const Exchange: React.FC = () => {
           };
         } catch (err) {
           console.log('FIT token not available yet:', err);
-          // Use a placeholder CRA token if contract not deployed
           fitTokenData = {
             id: 'cra',
             name: 'Cryptara Token',
@@ -82,8 +154,7 @@ const Exchange: React.FC = () => {
             address: '0x0000000000000000000000000000000000000000'
           };
         }
-        
-        // Create token list with real data
+
         const tokens: Token[] = [
           {
             id: 'eth',
@@ -91,8 +162,8 @@ const Exchange: React.FC = () => {
             symbol: 'ETH',
             logo: '🔷',
             balance: ethers.formatEther(ethBalance),
-            price: '2,850.45',  // Would ideally come from a price oracle
-            address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE' // Common representation for ETH
+            price: '2,850.45',
+            address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE'
           },
           fitTokenData,
           {
@@ -100,20 +171,18 @@ const Exchange: React.FC = () => {
             name: 'USD Coin',
             symbol: 'USDC',
             logo: '💲',
-            balance: '0',  // Would need actual USDC integration
+            balance: '0',
             price: '1.00',
-            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48' // Mainnet USDC address
+            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48'
           },
         ];
-        
+
         setAvailableTokens(tokens);
-        setFromToken(tokens[0]); // ETH by default
-        setToToken(tokens[1]); // FIT by default
-        
-        // Set estimated gas fee
+        setFromToken(tokens[0]);
+        setToToken(tokens[1]);
+
         try {
           const gasPrice = await provider.getFeeData();
-          const estimatedGas = ethers.parseEther('0.0002'); // Rough estimate for a swap
           const gasFeeWei = gasPrice.gasPrice ? gasPrice.gasPrice * BigInt(21000) : BigInt(0);
           setGasFee(`≈ ${ethers.formatEther(gasFeeWei)} ETH`);
         } catch (err) {
@@ -121,15 +190,13 @@ const Exchange: React.FC = () => {
         }
       } catch (err) {
         console.error('Error loading token data:', err);
-        // Fall back to demo data
         loadDemoTokens();
       } finally {
         setIsLoading(false);
       }
     };
-    
+
     const loadDemoTokens = () => {
-      // Demo data for when wallet is not connected
       const tokens = [
         {
           id: 'eth',
@@ -166,8 +233,8 @@ const Exchange: React.FC = () => {
       ];
 
       setAvailableTokens(tokens);
-      setFromToken(tokens[0]); // ETH by default
-      setToToken(tokens[1]); // FIT by default
+      setFromToken(tokens[0]);
+      setToToken(tokens[1]);
       setGasFee('≈ 0.0002 ETH');
     };
 
@@ -189,12 +256,12 @@ const Exchange: React.FC = () => {
         const fromPrice = parseFloat(fromToken.price.replace(/,/g, ''));
         const toPrice = parseFloat(toToken.price.replace(/,/g, ''));
         const fromValue = parseFloat(fromAmount);
-        
+
         if (isNaN(fromValue)) {
           setToAmount('');
           return;
         }
-        
+
         const calculatedToAmount = (fromValue * fromPrice / toPrice).toFixed(6);
         setToAmount(calculatedToAmount);
         setError('');
@@ -210,8 +277,7 @@ const Exchange: React.FC = () => {
   const handleFromAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setFromAmount(value);
-    
-    // Check if the amount is greater than the balance
+
     if (fromToken && parseFloat(value) > parseFloat(fromToken.balance.replace(/,/g, ''))) {
       setError('Insufficient balance');
     } else {
@@ -222,22 +288,21 @@ const Exchange: React.FC = () => {
   const handleToAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
     setToAmount(value);
-    
+
     if (fromToken && toToken) {
       try {
         const fromPrice = parseFloat(fromToken.price.replace(/,/g, ''));
         const toPrice = parseFloat(toToken.price.replace(/,/g, ''));
         const toValue = parseFloat(value);
-        
+
         if (isNaN(toValue)) {
           setFromAmount('');
           return;
         }
-        
+
         const calculatedFromAmount = (toValue * toPrice / fromPrice).toFixed(6);
         setFromAmount(calculatedFromAmount);
-        
-        // Check if the calculated from amount is greater than the balance
+
         if (fromToken && parseFloat(calculatedFromAmount) > parseFloat(fromToken.balance.replace(/,/g, ''))) {
           setError('Insufficient balance');
         } else {
@@ -283,49 +348,42 @@ const Exchange: React.FC = () => {
       setError('Please connect your wallet first');
       return;
     }
-    
+
     if (!fromToken || !toToken || !fromAmount || Number(fromAmount) <= 0) {
       setError('Please enter a valid amount');
       return;
     }
-    
+
     setSwapLoading(true);
     setError('');
     setSwapSuccess(false);
-    
+
     try {
-      // Check if this is a direct purchase of CRA token with ETH
       if (fromToken.id === 'eth' && toToken.id === 'cra') {
-        // Call buyTokens for ETH -> FIT transactions
         await buyTokens(fromAmount);
       } else {
-        // For other token swaps
-        // This would need integration with a DEX or other exchange mechanism
-        // For now, we'll simulate the swap for other tokens
         await new Promise(resolve => setTimeout(resolve, 2000));
       }
-      
+
       setSwapSuccess(true);
       setFromAmount('');
       setToAmount('');
-      
-      // Refresh token data
+
       const provider = getProvider();
       if (fromToken.id === 'eth') {
         const ethBalance = await provider.getBalance(address!);
         fromToken.balance = ethers.formatEther(ethBalance);
       }
-      
+
       if (toToken.id === 'cra') {
         const contract = await getTokenContract();
         const balance = await contract.balanceOf(address!);
         toToken.balance = ethers.formatEther(balance);
       }
-      
-      // Update state with new balances
+
       setFromToken({...fromToken});
       setToToken({...toToken});
-      
+
     } catch (err: any) {
       console.error('Swap error:', err);
       setError(err.message || 'Failed to complete swap. Please try again.');
@@ -349,7 +407,7 @@ const Exchange: React.FC = () => {
         <h1 className="exchange-title">Exchange</h1>
         <p className="exchange-subtitle">Swap tokens at the best rates</p>
       </div>
-      
+
       <div className="exchange-container">
         <div className="exchange-card glass-card">
           <div className="exchange-card-header">
@@ -358,9 +416,8 @@ const Exchange: React.FC = () => {
               <button className="settings-button">⚙️</button>
             </div>
           </div>
-          
+
           <div className="exchange-form">
-            {/* From Token Selection */}
             <div className="exchange-input-container">
               <div className="exchange-input-header">
                 <span>From</span>
@@ -368,7 +425,7 @@ const Exchange: React.FC = () => {
                   Balance: {fromToken?.balance} {fromToken?.symbol}
                 </span>
               </div>
-              
+
               <div className="exchange-input-group">
                 <input
                   type="text"
@@ -377,8 +434,8 @@ const Exchange: React.FC = () => {
                   onChange={handleFromAmountChange}
                   placeholder="0.0"
                 />
-                
-                <button 
+
+                <button
                   className="token-selector"
                   onClick={() => setShowFromTokens(true)}
                 >
@@ -387,9 +444,9 @@ const Exchange: React.FC = () => {
                   <span className="token-dropdown-icon">▼</span>
                 </button>
               </div>
-              
+
               <div className="max-button-container">
-                <button 
+                <button
                   className="max-button"
                   onClick={() => {
                     if (fromToken) {
@@ -401,15 +458,13 @@ const Exchange: React.FC = () => {
                 </button>
               </div>
             </div>
-            
-            {/* Swap Button */}
+
             <div className="swap-button-container">
               <button className="swap-tokens-button" onClick={handleTokenSwap}>
                 <span>⇅</span>
               </button>
             </div>
-            
-            {/* To Token Selection */}
+
             <div className="exchange-input-container">
               <div className="exchange-input-header">
                 <span>To (estimated)</span>
@@ -417,7 +472,7 @@ const Exchange: React.FC = () => {
                   Balance: {toToken?.balance} {toToken?.symbol}
                 </span>
               </div>
-              
+
               <div className="exchange-input-group">
                 <input
                   type="text"
@@ -426,8 +481,8 @@ const Exchange: React.FC = () => {
                   onChange={handleToAmountChange}
                   placeholder="0.0"
                 />
-                
-                <button 
+
+                <button
                   className="token-selector"
                   onClick={() => setShowToTokens(true)}
                 >
@@ -437,48 +492,45 @@ const Exchange: React.FC = () => {
                 </button>
               </div>
             </div>
-            
-            {/* Exchange Rate */}
+
             {exchangeRate && (
               <div className="exchange-rate">
                 {exchangeRate}
               </div>
             )}
-            
-            {/* Error Message */}
+
             {error && (
               <div className="error-message">
                 {error}
               </div>
             )}
-            
-            {/* Slippage Settings */}
+
             <div className="slippage-settings">
               <div className="slippage-header">
                 <span>Slippage Tolerance</span>
                 <span className="slippage-value">{slippage}%</span>
               </div>
-              
+
               <div className="slippage-buttons">
-                <button 
+                <button
                   className={`slippage-button ${slippage === 0.1 ? 'active' : ''}`}
                   onClick={() => handleSlippageChange(0.1)}
                 >
                   0.1%
                 </button>
-                <button 
+                <button
                   className={`slippage-button ${slippage === 0.5 ? 'active' : ''}`}
                   onClick={() => handleSlippageChange(0.5)}
                 >
                   0.5%
                 </button>
-                <button 
+                <button
                   className={`slippage-button ${slippage === 1.0 ? 'active' : ''}`}
                   onClick={() => handleSlippageChange(1.0)}
                 >
                   1.0%
                 </button>
-                <button 
+                <button
                   className={`slippage-button ${slippage === 3.0 ? 'active' : ''}`}
                   onClick={() => handleSlippageChange(3.0)}
                 >
@@ -486,26 +538,24 @@ const Exchange: React.FC = () => {
                 </button>
               </div>
             </div>
-            
-            {/* Transaction Details */}
+
             <div className="transaction-details">
               <div className="detail-item">
                 <span className="detail-label">Gas Fee</span>
                 <span className="detail-value">{gasFee}</span>
               </div>
             </div>
-            
-            {/* Swap Button */}
-            <button 
+
+            <button
               className="btn-gradient swap-button"
               disabled={!isConnected || !!error || !fromAmount || parseFloat(fromAmount) === 0 || swapLoading}
               onClick={handleSwap}
             >
-              {!isConnected ? 'Connect Wallet to Swap' : 
-                swapLoading ? 'Processing...' : 
+              {!isConnected ? 'Connect Wallet to Swap' :
+                swapLoading ? 'Processing...' :
                 error ? error : 'Swap Tokens'}
             </button>
-            
+
             {swapSuccess && (
               <div className="success-message">
                 Swap completed successfully!
@@ -513,8 +563,7 @@ const Exchange: React.FC = () => {
             )}
           </div>
         </div>
-        
-        {/* Token Selection Modal - From */}
+
         {showFromTokens && (
           <div className="token-modal-overlay" onClick={() => setShowFromTokens(false)}>
             <div className="token-modal glass-card" onClick={(e) => e.stopPropagation()}>
@@ -522,15 +571,15 @@ const Exchange: React.FC = () => {
                 <h3>Select a token</h3>
                 <button className="close-button" onClick={() => setShowFromTokens(false)}>×</button>
               </div>
-              
+
               <div className="token-search">
                 <input type="text" placeholder="Search name or paste address" />
               </div>
-              
+
               <div className="token-list">
                 {availableTokens.map(token => (
-                  <div 
-                    key={token.id} 
+                  <div
+                    key={token.id}
                     className="token-list-item"
                     onClick={() => selectFromToken(token)}
                   >
@@ -548,8 +597,7 @@ const Exchange: React.FC = () => {
             </div>
           </div>
         )}
-        
-        {/* Token Selection Modal - To */}
+
         {showToTokens && (
           <div className="token-modal-overlay" onClick={() => setShowToTokens(false)}>
             <div className="token-modal glass-card" onClick={(e) => e.stopPropagation()}>
@@ -557,15 +605,15 @@ const Exchange: React.FC = () => {
                 <h3>Select a token</h3>
                 <button className="close-button" onClick={() => setShowToTokens(false)}>×</button>
               </div>
-              
+
               <div className="token-search">
                 <input type="text" placeholder="Search name or paste address" />
               </div>
-              
+
               <div className="token-list">
                 {availableTokens.map(token => (
-                  <div 
-                    key={token.id} 
+                  <div
+                    key={token.id}
                     className="token-list-item"
                     onClick={() => selectToToken(token)}
                   >
@@ -584,8 +632,7 @@ const Exchange: React.FC = () => {
           </div>
         )}
       </div>
-      
-      {/* Market Information */}
+
       <div className="market-info-container">
         <div className="market-info-card glass-card">
           <h2>Today's Crypto Prices</h2>
@@ -597,55 +644,29 @@ const Exchange: React.FC = () => {
               <div className="market-cell market-cap">Market Cap</div>
               <div className="market-cell volume">Volume (24h)</div>
             </div>
-            
+
             <div className="market-table-body">
-              <div className="market-table-row">
-                <div className="market-cell name">
-                  <span className="crypto-logo">₿</span>
-                  <span className="crypto-name">Bitcoin</span>
-                  <span className="crypto-symbol">BTC</span>
+              {marketLoading ? (
+                <div style={{ padding: '1rem', color: 'var(--text-secondary)', textAlign: 'center' }}>
+                  Loading market data...
                 </div>
-                <div className="market-cell price">$62,485.20</div>
-                <div className="market-cell change positive">+2.8%</div>
-                <div className="market-cell market-cap">$1.21T</div>
-                <div className="market-cell volume">$32.5B</div>
-              </div>
-              
-              <div className="market-table-row">
-                <div className="market-cell name">
-                  <span className="crypto-logo">🔷</span>
-                  <span className="crypto-name">Ethereum</span>
-                  <span className="crypto-symbol">ETH</span>
-                </div>
-                <div className="market-cell price">$3,805.62</div>
-                <div className="market-cell change positive">+5.2%</div>
-                <div className="market-cell market-cap">$457.8B</div>
-                <div className="market-cell volume">$18.7B</div>
-              </div>
-              
-              <div className="market-table-row">
-                <div className="market-cell name">
-                  <span className="crypto-logo">◎</span>
-                  <span className="crypto-name">Solana</span>
-                  <span className="crypto-symbol">SOL</span>
-                </div>
-                <div className="market-cell price">$107.52</div>
-                <div className="market-cell change negative">-1.3%</div>
-                <div className="market-cell market-cap">$46.5B</div>
-                <div className="market-cell volume">$2.1B</div>
-              </div>
-              
-              <div className="market-table-row">
-                <div className="market-cell name">
-                  <span className="crypto-logo">🪙</span>
-                  <span className="crypto-name">Cryptara Token</span>
-                  <span className="crypto-symbol">CRA</span>
-                </div>
-                <div className="market-cell price">$1.663</div>
-                <div className="market-cell change positive">+12.5%</div>
-                <div className="market-cell market-cap">$832.5M</div>
-                <div className="market-cell volume">$156.2M</div>
-              </div>
+              ) : (
+                marketRows.map((row) => (
+                  <div key={row.id} className="market-table-row">
+                    <div className="market-cell name">
+                      <span className="crypto-logo">{row.logo}</span>
+                      <span className="crypto-name">{row.name}</span>
+                      <span className="crypto-symbol">{row.symbol}</span>
+                    </div>
+                    <div className="market-cell price">${row.price}</div>
+                    <div className={`market-cell change ${row.change.startsWith('+') ? 'positive' : 'negative'}`}>
+                      {row.change}
+                    </div>
+                    <div className="market-cell market-cap">{row.marketCap}</div>
+                    <div className="market-cell volume">{row.volume}</div>
+                  </div>
+                ))
+              )}
             </div>
           </div>
         </div>
